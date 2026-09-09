@@ -1,0 +1,6 @@
+{
+  "name": "Apprendre DZ",
+  "description": "منصة Apprendre DZ التعليمية التفاعلية للدروس، المسابقات الأسبوعية، التمارين والتواصل مع الأساتذة.",
+  "requestFramePermissions": ["camera", "microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

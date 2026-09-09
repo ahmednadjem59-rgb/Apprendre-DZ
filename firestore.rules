@@ -1,0 +1,100 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && 
+             (request.auth.token.email.lower() == 'ahmednadjem59@gmail.com' || 
+              request.auth.token.email.lower() == 'ahmedadjem59@gmail.com' ||
+              request.auth.token.email.lower() == 'ahmednadjem004@gmail.com');
+    }
+
+    // --- User Rules ---
+    // Public read allows unauthenticated visitors to see leaderboards, profiles and rankings
+    match /users/{userId} {
+      allow read: if true;
+      allow create, update: if isSignedIn() && isValidId(userId);
+      allow delete: if isOwner(userId) || isAdmin();
+    }
+
+    // --- Weekly Contest Participants ---
+    match /contest_participants/{participantId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isValidId(participantId);
+    }
+
+    // --- Weekly Thursday Contest Configuration & Winner ---
+    match /weekly_contest_config/{configId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isValidId(configId);
+    }
+
+    // --- Custom Questions Bank (Public Read, Authenticated/Admin Write) ---
+    match /custom_questions/{questionId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isValidId(questionId);
+    }
+
+    // --- Custom Lessons Bank (Public Read, Authenticated/Admin Write) ---
+    match /custom_lessons/{lessonId} {
+      allow read: if true;
+      allow write: if isSignedIn() && isValidId(lessonId);
+    }
+
+    // --- Challenge Rules ---
+    match /challenges/{challengeId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(challengeId);
+    }
+
+    // --- Purchase Rules ---
+    match /purchases/{purchaseId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && isValidId(purchaseId);
+    }
+
+    // --- Chat Rules (Private & Group) ---
+    match /private_chats/{chatId} {
+      allow read, write: if isSignedIn();
+      
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    match /groups/{groupId} {
+      allow read, write: if isSignedIn();
+
+      match /messages/{messageId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // --- Live Audio/Video Calls ---
+    match /live_calls/{callId} {
+      allow read, write: if isSignedIn();
+      
+      match /signals/{signalId} {
+        allow read, write: if isSignedIn();
+      }
+    }
+
+    // --- Health Check / Connection Test ---
+    match /test/connection {
+      allow read: if true;
+      allow write: if false;
+    }
+  }
+}

@@ -1,0 +1,261 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile containing points, progress, roles and settings.",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "authProvider": { "type": "string" },
+        "role": { "type": "string", "enum": ["teacher", "student", "parent"] },
+        "totalPoints": { "type": "number" },
+        "contestPoints": { "type": "number" },
+        "selectedLevelId": { "type": "string" },
+        "selectedTrackId": { "type": "string" },
+        "selectedYearId": { "type": "string" },
+        "dailyStudySeconds": { "type": "number" },
+        "lastDailyRewardDate": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "lastActive": { "type": "string", "format": "date-time" },
+        "lastWeeklyContestDate": { "type": "string" },
+        "userCoins": { "type": "number" },
+        "isPremium": { "type": "boolean" },
+        "streakCount": { "type": "number" },
+        "lastStreakDate": { "type": "string" },
+        "lastGiftDate": { "type": "string" },
+        "lastPaymentDate": { "type": "string" },
+        "rewardEligible": { "type": "boolean" },
+        "studentId": { "type": "string" },
+        "teacherCode": { "type": "string" },
+        "schoolName": { "type": "string" },
+        "teacherSubject": { "type": "string" },
+        "childName": { "type": "string" },
+        "childSchool": { "type": "string" },
+        "mediaPermissionsGranted": { "type": "boolean" },
+        "mediaPermissionsRequestedAt": { "type": "string" },
+        "chatMediaPermissionsConfigured": { "type": "boolean" },
+        "unlockedAvatars": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "selectedAvatar": { "type": "string" }
+      }
+    },
+    "ContestParticipant": {
+      "title": "ContestParticipant",
+      "description": "Weekly contest participant entry.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "points": { "type": "number" },
+        "studentId": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      }
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A chat message.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "roomId": { "type": "string" },
+        "type": { "type": "string" },
+        "mediaUrl": { "type": "string" }
+      }
+    },
+    "Group": {
+      "title": "Group",
+      "description": "A group chat room.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "creatorId": { "type": "string" },
+        "members": { "type": "array", "items": { "type": "string" } },
+        "teacherId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "activeCall": { "type": "object" }
+      }
+    },
+    "PrivateChat": {
+      "title": "PrivateChat",
+      "description": "A direct private chat between two participants.",
+      "type": "object",
+      "properties": {
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "participantNames": { "type": "object" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Challenge": {
+      "title": "Challenge",
+      "description": "A study challenge between two students.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "receiverId": { "type": "string" },
+        "receiverName": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "subjectName": { "type": "string" },
+        "difficulty": { "type": "string" },
+        "status": { "type": "string" },
+        "senderScore": { "type": "number" },
+        "receiverScore": { "type": "number" },
+        "senderStarted": { "type": "boolean" },
+        "receiverStarted": { "type": "boolean" },
+        "senderFinished": { "type": "boolean" },
+        "receiverFinished": { "type": "boolean" },
+        "winnerId": { "type": "string" },
+        "winnerName": { "type": "string" },
+        "winningReason": { "type": "string" },
+        "forfeitedBy": { "type": "string" },
+        "forfeitedByName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "Purchase": {
+      "title": "Purchase",
+      "description": "A record of a service or lesson purchase.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "serviceId": { "type": "string" },
+        "serviceName": { "type": "string" },
+        "price": { "type": "string" },
+        "type": { "type": "string", "enum": ["summary", "session"] },
+        "status": { "type": "string" },
+        "paymentMethod": { "type": "string", "enum": ["paypal", "cash", "edahabia"] },
+        "date": { "type": "string", "format": "date-time" },
+        "bookingDetails": { "type": "object" }
+      }
+    },
+    "CustomQuestion": {
+      "title": "CustomQuestion",
+      "description": "Custom questions created by administrator/owner.",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "options": { "type": "array", "items": { "type": "string" } },
+        "correctAnswer": { "type": "number" },
+        "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"] },
+        "levelId": { "type": "string" },
+        "yearId": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "trackId": { "type": "string" },
+        "semester": { "type": "number" },
+        "remedyPlan": { "type": "string" },
+        "authorEmail": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "CustomLesson": {
+      "title": "CustomLesson",
+      "description": "Custom lessons created by administrator/owner.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "content": { "type": "string" },
+        "levelId": { "type": "string" },
+        "yearId": { "type": "string" },
+        "subjectId": { "type": "string" },
+        "subjectName": { "type": "string" },
+        "trackId": { "type": "string" },
+        "semester": { "type": "number" },
+        "order": { "type": "number" },
+        "authorEmail": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "WeeklyContestConfig": {
+      "title": "WeeklyContestConfig",
+      "description": "Configuration and winner details for the Thursday Weekly Competition.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "contestDate": { "type": "string" },
+        "winnerId": { "type": "string" },
+        "winnerName": { "type": "string" },
+        "winnerEmail": { "type": "string" },
+        "winnerPoints": { "type": "number" },
+        "winnerCertificateNumber": { "type": "string" },
+        "isAnnounced": { "type": "boolean" },
+        "announcedAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "LiveCall": {
+      "title": "LiveCall",
+      "description": "Live audio and video call sessions.",
+      "type": "object",
+      "properties": {
+        "active": { "type": "boolean" },
+        "type": { "type": "string", "enum": ["audio", "video"] },
+        "initiatorId": { "type": "string" },
+        "initiatorName": { "type": "string" },
+        "participants": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" }
+      }
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "Primary user profile document."
+    },
+    "contest_participants/{participantId}": {
+      "schema": "ContestParticipant",
+      "description": "Participants in the weekly contest leaderboard."
+    },
+    "weekly_contest_config/{configId}": {
+      "schema": "WeeklyContestConfig",
+      "description": "Thursday competition configuration and winner announcements."
+    },
+    "custom_questions/{questionId}": {
+      "schema": "CustomQuestion",
+      "description": "Administrator custom curated questions."
+    },
+    "custom_lessons/{lessonId}": {
+      "schema": "CustomLesson",
+      "description": "Administrator custom curated educational lessons."
+    },
+    "challenges/{challengeId}": {
+      "schema": "Challenge",
+      "description": "Peer-to-peer study challenges."
+    },
+    "purchases/{purchaseId}": {
+      "schema": "Purchase",
+      "description": "User purchases records."
+    },
+    "groups/{groupId}": {
+      "schema": "Group",
+      "description": "Group chat rooms."
+    },
+    "groups/{groupId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "Messages within a group."
+    },
+    "private_chats/{chatId}": {
+      "schema": "PrivateChat",
+      "description": "One-on-one private chat room."
+    },
+    "private_chats/{chatId}/messages/{messageId}": {
+      "schema": "Message",
+      "description": "One-on-one private messages."
+    },
+    "live_calls/{callId}": {
+      "schema": "LiveCall",
+      "description": "Live audio and video conference calls."
+    },
+    "live_calls/{callId}/signals/{signalId}": {
+      "schema": "object",
+      "description": "WebRTC call signaling messages."
+    }
+  }
+}
