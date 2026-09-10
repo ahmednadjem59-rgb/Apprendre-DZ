@@ -110,12 +110,14 @@ export function getDailyAnsweredSet(): { ids: Set<string>; texts: Set<string> } 
     }
 
     // Clean up old days from previous dates to avoid filling localStorage
+    const keysToRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key && key.startsWith(STORAGE_PREFIX) && key !== `${STORAGE_PREFIX}${today}`) {
-        localStorage.removeItem(key);
+        keysToRemove.push(key);
       }
     }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
   } catch (e) {
     console.warn("Could not read daily answered set from localStorage:", e);
   }
