@@ -120,7 +120,6 @@ import { LiveCallRoom } from './components/LiveCallRoom';
 import { AdminQuestionManager } from './components/AdminQuestionManager';
 import { OneTimePermissionModal } from './components/OneTimePermissionModal';
 import { ThursdayWinnerModal } from './components/ThursdayWinnerModal';
-import { ThursdayContestCertificate } from './components/ThursdayContestCertificate';
 import { AdminThursdayContestManager } from './components/AdminThursdayContestManager';
 
 // Icon mapping helper
@@ -2223,11 +2222,16 @@ export default function App() {
                 }
               }
 
+              // If current user is one of the winners, immediately reflect +100 in state
+              if (user?.uid && finalWinners.some(w => (w.userId || w.id || w.studentId) === user.uid)) {
+                setTotalPoints(prev => prev + 100);
+              }
+
               const winnerNamesStr = finalWinners.map(w => w.name).join(' و ');
               showNotification(
                 isTieCrowned
-                  ? `🎊 مبروك للأبطال (${winnerNamesStr})! تعادلا في الصدارة وأتما الـ 50 سؤالاً وتم تتويجهما معاً (+100 نقطة لكل منهما)! 👑`
-                  : `🎊 مبروك للمتسابق ${finalWinners[0].name}! تصدر المرتبة الأولى وتوج بطلاً لمسابقة الخميس (+100 نقطة)! 👑`,
+                  ? `🎊 مبروك للأبطال (${winnerNamesStr})! تعادلا في الصدارة وتوجا معاً بالمركز الأول (+100 نقطة أضيفت مباشرة لكل منهما)! 👑`
+                  : `🎊 مبروك للمتسابق ${finalWinners[0].name}! تصدر المرتبة الأولى وربح 100 نقطة أضيفت مباشرة إلى حسابه! 👑`,
                 'success'
               );
 
@@ -4730,8 +4734,8 @@ export default function App() {
                       <p className="text-[11px] text-blue-700 font-bold">نقاط ومكافآت فورية عن كل إجابة صحيحة واجتياز مراحل الـ 50 سؤالاً بنجاح.</p>
                     </div>
                     <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200">
-                      <p className="font-black text-amber-900 text-xs mb-1">👑 المكافأة الثانية (تتويج بطل الخميس - فائز واحد فقط):</p>
-                      <p className="text-[11px] text-amber-800 font-bold">الفائز الأول بالمركز الأول يحصل على **100 نقطة إضافية** + **شهادة تفوق معتمدة ترسل عبر الإيميل** وتكريم رسمي بعد إعلان نتائج المسابقة!</p>
+                      <p className="font-black text-amber-900 text-xs mb-1">👑 مكافأة المركز الأول (تتويج بطل الخميس):</p>
+                      <p className="text-[11px] text-amber-800 font-bold">الفائز بالمركز الأول يحصل مباشرة على **100 نقطة ذهبية تودع في حسابه** وتكريم رسمي بالصدارة عند إعلان نتائج المسابقة!</p>
                     </div>
                   </div>
                 </section>
@@ -8803,11 +8807,11 @@ export default function App() {
                     </div>
                     <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-4 rounded-2xl border border-amber-200 space-y-1">
                       <p className="text-xs font-black text-amber-900 flex items-center gap-1.5 justify-end">
-                        <span>المكافأة الثانية: تتويج بطل مسابقة الخميس 👑</span>
+                        <span>المكافأة الكبرى: 100 نقطة ذهبية للأول 👑</span>
                         <Crown size={16} className="text-amber-600" />
                       </p>
                       <p className="text-[11px] text-amber-800 font-bold leading-relaxed">
-                        الترتيب باللوحة يعتمد على **أكبر عدد إجابات صحيحة**. عند إغلاق المسابقة في **الساعة 22:00**، يتوج صاحب المرتبة الأولى بـ **100 نقطة إضافية + شهادة تفوق معتمدة**. وفي حالة تعادل أكثر من متسابق في الصدارة بعد إتمام 50 سؤالاً، يكرم الجميع معاً!
+                        الترتيب باللوحة يعتمد على **أكبر عدد إجابات صحيحة**. عند إعلان النتائج وإغلاق المسابقة، يتوج الأول في القائمة ويربح **100 نقطة مباشرة في حسابه**.
                       </p>
                     </div>
                   </div>
@@ -8836,8 +8840,8 @@ export default function App() {
                       </div>
                       <p className="text-xs font-bold text-slate-900 leading-relaxed bg-white/40 p-3 rounded-xl">
                         {currentThursdayWinner.isTie 
-                          ? '✨ تهانينا الحارة لأبطال مسابقة الخميس! حققوا أعلى نتيجة وأتموا الـ 50 سؤالاً وتم تتويجهم معاً بالجوائز والشهادات الرسمية.'
-                          : '✨ تهانينا الحارة لبطل مسابقة الخميس! تم منحه جائزة 100 نقطة إضافية + اعتماد شهادة التميز والتفوق الوطنية.'}
+                          ? '✨ تهانينا الحارة لأبطال مسابقة الخميس! حققوا أعلى نتيجة وتصدروا القائمة، وتم منح كل منهم 100 نقطة أضيفت مباشرة إلى رصيد حسابه 💎.'
+                          : '✨ تهانينا الحارة لبطل مسابقة الخميس! تصدر المركز الأول في القائمة وربح 100 نقطة أضيفت مباشرة إلى رصيد حسابه 💎.'}
                       </p>
                     </div>
                   )}
@@ -8915,7 +8919,7 @@ export default function App() {
                     <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-center gap-3 text-right">
                       <div className="text-amber-600"><Target size={20} /></div>
                       <p className="text-xs font-bold text-amber-700 leading-relaxed">
-                        المسابقة تفتح كل يوم خميس من 14:00 إلى 22:00. استعد لتكون الفائز بالمركز الأول وتنال 100 نقطة وشهادة الإيميل!
+                        المسابقة تفتح كل يوم خميس من 14:00 إلى 22:00. استعد لتكون الفائز بالمركز الأول وتنال 100 نقطة مباشرة في حسابك!
                       </p>
                     </div>
                   )}
@@ -10183,7 +10187,7 @@ export default function App() {
           />
         )}
 
-        {/* Thursday Contest Winner Celebration & Certificate Modal */}
+        {/* Thursday Contest Winner Celebration & 100 Points Reward Modal */}
         {showThursdayWinnerModal && (
           <ThursdayWinnerModal
             userName={user?.displayName || currentThursdayWinner?.winnerName || 'بطل الخميس'}
@@ -10194,6 +10198,19 @@ export default function App() {
             totalAnswered={currentThursdayWinner?.totalAnswered}
             isTie={Boolean(currentThursdayWinner?.isTie)}
             onClose={() => setShowThursdayWinnerModal(false)}
+            onClaimReward={async () => {
+              setTotalPoints(prev => prev + 100);
+              if (user?.uid) {
+                try {
+                  await updateDoc(doc(db, 'users', user.uid), {
+                    totalPoints: increment(100)
+                  });
+                } catch (e) {
+                  console.warn('Could not update points on claim:', e);
+                }
+              }
+              showNotification('🎉 ألف مبروك! تم تأكيد إيداع 100 نقطة ذهبية في حسابك مباشرة! 💎', 'success');
+            }}
           />
         )}
 

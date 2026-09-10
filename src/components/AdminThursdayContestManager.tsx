@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Award, Crown, Sparkles, Mail, CheckCircle2, Send, Search, Users, HelpCircle } from 'lucide-react';
+import { Trophy, Crown, CheckCircle2, Gift } from 'lucide-react';
 import { collection, onSnapshot, query, orderBy, limit, doc, setDoc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../lib/firebase';
-import { ThursdayContestCertificate } from './ThursdayContestCertificate';
 
 interface AdminThursdayContestManagerProps {
   currentUserEmail: string;
@@ -10,12 +9,10 @@ interface AdminThursdayContestManagerProps {
 }
 
 export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerProps> = ({
-  currentUserEmail,
+  currentUserEmail: _currentUserEmail,
   showNotification
 }) => {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
-  const [selectedWinner, setSelectedWinner] = useState<any | null>(null);
-  const [showCertificatePreview, setShowCertificatePreview] = useState(false);
   const [isAnnouncing, setIsAnnouncing] = useState(false);
   const [currentAnnouncedWinner, setCurrentAnnouncedWinner] = useState<any | null>(null);
 
@@ -56,8 +53,8 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
   }, []);
 
   // Smart official crowning based on rules:
-  // 1. If 2 or more tied with top correct answers and both completed 50 questions -> both crowned!
-  // 2. If top performer did not complete 50 questions, the #1 on the leaderboard is awarded the prize!
+  // 1. If 2 or more tied with top correct answers and both completed 50 questions -> both crowned and receive 100 points!
+  // 2. Otherwise, the #1 on the leaderboard is awarded 100 points directly in their account!
   const handleAutoCrownOfficialWinners = async () => {
     if (leaderboard.length === 0) {
       showNotification('لا يوجد متسابقون لتتويجهم حالياً.', 'warning');
@@ -88,8 +85,8 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
 
     const winnerNamesStr = finalWinners.map(w => w.name).join(' و ');
     const confirmMsg = isTieCrowned 
-      ? `تم رصد تعادل في الصدارة بين: (${winnerNamesStr}) وكلاهما أتم الـ 50 سؤالاً بنجاح.\nهل تريد تتويجهما معاً كأبطال للأسبوع ومنح كل منهما +100 نقطة وشهادة التكريم؟`
-      : `هل أنت متأكد من تتويج المتصدر (${finalWinners[0].name}) بـ (${finalWinners[0].correctAnswers || 0}/50 إجابة صحيحة) كبطل رسمي لمسابقة الخميس ومنحه 100 نقطة إضافية؟`;
+      ? `تم رصد تعادل في الصدارة بين: (${winnerNamesStr}) وكلاهما أتم الـ 50 سؤالاً بنجاح.\nهل تريد تتويجهما معاً كأبطال للأسبوع وإيداع 100 نقطة مباشرة في حساب كل منهما؟`
+      : `هل أنت متأكد من تتويج المتصدر (${finalWinners[0].name}) بـ (${finalWinners[0].correctAnswers || 0}/50 إجابة صحيحة) كبطل رسمي لمسابقة الخميس وإيداع 100 نقطة مباشرة في حسابه؟`;
 
     if (!confirm(confirmMsg)) return;
 
@@ -97,7 +94,7 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
     try {
       const today = new Date().toISOString().split('T')[0];
 
-      // 1. Award 100 points to all crowned winners
+      // 1. Directly award 100 points to each winner's user account in Firestore
       for (const w of finalWinners) {
         const userId = w.studentId || w.userId || w.id;
         if (userId) {
@@ -123,6 +120,7 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
         score: finalWinners[0].points || 0,
         correctAnswers: finalWinners[0].correctAnswers || 0,
         totalAnswered: finalWinners[0].totalAnswered || 50,
+        rewardPoints: 100,
         isAnnounced: true,
         contestDate: today,
         announcedAt: new Date().toISOString(),
@@ -139,8 +137,8 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
 
       showNotification(
         isTieCrowned 
-          ? `🏆 تم بنجاح تتويج الأبطال (${winnerNamesStr}) معاً واعتماد الجوائز والشهادات الرسمية!`
-          : `🏆 تم بنجاح تتويج (${finalWinners[0].name}) كبطل الخميس، وإضافة 100 نقطة واعتماد شهادة التفوق!`,
+          ? `🏆 تم بنجاح تتويج الأبطال (${winnerNamesStr}) وإيداع 100 نقطة مباشرة في حساب كل منهما!`
+          : `🏆 تم بنجاح تتويج (${finalWinners[0].name}) كبطل الخميس وإيداع 100 نقطة مباشرة في حسابه!`,
         'success'
       );
     } catch (err) {
@@ -152,14 +150,14 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
   };
 
   const handleCrownSingleWinner = async (contestant: any) => {
-    if (!confirm(`هل أنت متأكد من تتويج الطالب (${contestant.name}) كبطل لمسابقة الخميس ومنحه 100 نقطة إضافية وشهادة التكريم الرسمية؟`)) {
+    if (!confirm(`هل أنت متأكد من تتويج الطالب (${contestant.name}) كبطل لمسابقة الخميس ومنحه 100 نقطة مباشرة تضاف لحسابه؟`)) {
       return;
     }
 
     setIsAnnouncing(true);
     try {
-      if (contestant.studentId || contestant.userId || contestant.id) {
-        const userId = contestant.studentId || contestant.userId || contestant.id;
+      const userId = contestant.studentId || contestant.userId || contestant.id;
+      if (userId) {
         try {
           await updateDoc(doc(db, 'users', userId), {
             totalPoints: increment(100)
@@ -181,6 +179,7 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
         score: contestant.points || 100,
         correctAnswers: contestant.correctAnswers || 0,
         totalAnswered: contestant.totalAnswered || 50,
+        rewardPoints: 100,
         isAnnounced: true,
         contestDate: today,
         announcedAt: new Date().toISOString(),
@@ -195,7 +194,7 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
         }]
       }, { merge: true });
 
-      showNotification(`🏆 تم بنجاح تتويج (${contestant.name}) كبطل الخميس، وإضافة 100 نقطة واعتماد شهادة التفوق!`, 'success');
+      showNotification(`🏆 تم بنجاح تتويج (${contestant.name}) كبطل الخميس وإضافة 100 نقطة مباشرة إلى حسابه!`, 'success');
     } catch (err) {
       console.error(err);
       showNotification('حدث خطأ أثناء تتويج البطل. يرجى المحاولة ثانية.', 'error');
@@ -217,7 +216,7 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
             </span>
             <h3 className="text-xl sm:text-2xl font-black text-slate-900">إدارة وتتويج بطل مسابقة الخميس</h3>
             <p className="text-xs text-slate-500 font-bold">
-              يتم ترتيب المتسابقين حسب أكبر عدد أسئلة صحيحة. وفي حالة التعادل بعد إتمام 50 سؤالاً يتم تتويج الاثنين معاً.
+              صاحب المركز الأول يفوز بـ 100 نقطة ذهبية تودع مباشرة في حسابه.
             </p>
           </div>
         </div>
@@ -229,6 +228,7 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
               <div className="text-xs">
                 <span className="font-bold text-slate-600">البطل المتوج حالياً: </span>
                 <strong className="text-emerald-800 font-black">{currentAnnouncedWinner.winnerName}</strong>
+                <span className="text-amber-700 font-black mr-1">(+100 نقطة)</span>
               </div>
             </div>
           )}
@@ -239,7 +239,7 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
             className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 rounded-2xl font-black text-xs shadow-md shadow-amber-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             <Crown size={16} />
-            <span>تتويج الأبطال تلقائياً حسب القواعد 🏆</span>
+            <span>تتويج المتصدر ومنحه 100 نقطة 🏆</span>
           </button>
         </div>
       </div>
@@ -310,22 +310,12 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
                     <td className="p-3 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => {
-                            setSelectedWinner(item);
-                            setShowCertificatePreview(true);
-                          }}
-                          className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-black text-[11px] transition-all flex items-center gap-1 cursor-pointer"
-                        >
-                          <Award size={14} />
-                          <span>معاينة الشهادة</span>
-                        </button>
-                        <button
                           onClick={() => handleCrownSingleWinner(item)}
                           disabled={isAnnouncing}
-                          className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl font-black text-[11px] shadow-sm transition-all flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                          className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 rounded-xl font-black text-[11px] shadow-sm transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                         >
-                          <Crown size={14} />
-                          <span>تتويج 👑</span>
+                          <Gift size={14} />
+                          <span>تتويج وإضافة 100 نقطة 💎</span>
                         </button>
                       </div>
                     </td>
@@ -336,17 +326,6 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
           </div>
         )}
       </div>
-
-      {/* Certificate Preview Modal for Admin */}
-      {showCertificatePreview && selectedWinner && (
-        <ThursdayContestCertificate
-          userName={selectedWinner.name || 'اسم الطالب'}
-          userEmail={selectedWinner.email || selectedWinner.userEmail}
-          studentId={selectedWinner.studentId || selectedWinner.id}
-          points={selectedWinner.points || 100}
-          onClose={() => setShowCertificatePreview(false)}
-        />
-      )}
     </div>
   );
 };
