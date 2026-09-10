@@ -3,9 +3,28 @@ import { getFallbackQuestions, get50WeeklyContestQuestions } from "../data/fallb
 import { getCurriculumLessonsForSubject } from "../data/curriculumLessons";
 import { generateInstantLessonArticle, generateInstantRevisionArticle } from "../data/curriculumLessonsContent";
 
-// In-memory cache for instant retrieval of generated lessons
+// In-memory caches for instant zero-latency retrieval across the application
 const lessonContentCache = new Map<string, string>();
 const revisionContentCache = new Map<string, string>();
+const questionsCache = new Map<string, Question[]>();
+const contestQuestionsCache = new Map<string, Question[]>();
+const lessonIndexCache = new Map<string, { title: string; description: string }[]>();
+
+/**
+ * Fast fetch wrapper with strict timeout to prevent any network hanging
+ */
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 3500): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    clearTimeout(timer);
+    return res;
+  } catch (err) {
+    clearTimeout(timer);
+    throw err;
+  }
+}
 
 export function getInstantLessonContent(
   level: string,
@@ -86,27 +105,38 @@ export async function generateQuestions(
   semester?: number
 ): Promise<Question[]> {
   const normalizedSubject = normalizeSubject(subject);
+  const cacheKey = `${level}_${year}_${normalizedSubject}_${difficulty}_${track || ''}_${semester || ''}_${count}`;
+  if (questionsCache.has(cacheKey)) {
+    const cached = questionsCache.get(cacheKey)!;
+    if (cached && cached.length >= count) {
+      return cached.slice(0, count);
+    }
+  }
+
+  const { levelId, yearId } = deriveIdsFromNames(level, year);
+  const fallback = getFallbackQuestions(normalizedSubject, count, difficulty, levelId, yearId, track);
 
   try {
-    const res = await fetch("/api/generate-questions", {
+    const res = await fetchWithTimeout("/api/generate-questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level, year, subject: normalizedSubject, difficulty, track, count, semester })
-    });
+    }, 4000);
 
     if (res.ok) {
       const data = await res.json();
       if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
+        questionsCache.set(cacheKey, data.questions);
         return data.questions;
       }
     }
   } catch (error: any) {
-    console.warn("API /api/generate-questions fetch failed, using fallback:", error?.message || error);
+    console.warn("API /api/generate-questions fetch timed out or failed, using instant curriculum fallback:", error?.message || error);
   }
 
-  // Derive levelId and yearId for fallback selection
-  const { levelId, yearId } = deriveIdsFromNames(level, year);
-  return getFallbackQuestions(normalizedSubject, count, difficulty, levelId, yearId, track);
+  // Cache fallback to keep consecutive loads instant
+  questionsCache.set(cacheKey, fallback);
+  return fallback;
 }
 
 export async function generateContestQuestions(
@@ -115,25 +145,34 @@ export async function generateContestQuestions(
   count: number = 25,
   isAcademic: boolean = false
 ): Promise<Question[]> {
+  const cacheKey = `${level}_${round}_${count}_${isAcademic}`;
+  if (contestQuestionsCache.has(cacheKey)) {
+    return contestQuestionsCache.get(cacheKey)!;
+  }
+
+  const full50 = get50WeeklyContestQuestions(level);
+  const defaultQuestions = isAcademic ? full50.slice(25, 50) : full50.slice(0, 25);
+
   try {
-    const res = await fetch("/api/generate-contest-questions", {
+    const res = await fetchWithTimeout("/api/generate-contest-questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level, round, count, isAcademic })
-    });
+    }, 3500);
 
     if (res.ok) {
       const data = await res.json();
       if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
+        contestQuestionsCache.set(cacheKey, data.questions);
         return data.questions;
       }
     }
   } catch (error: any) {
-    console.warn("API /api/generate-contest-questions fetch failed, using fallback:", error?.message || error);
+    console.warn("API /api/generate-contest-questions fetch timed out or failed, using instant fallback:", error?.message || error);
   }
 
-  const full50 = get50WeeklyContestQuestions(level);
-  return isAcademic ? full50.slice(25, 50) : full50.slice(0, 25);
+  contestQuestionsCache.set(cacheKey, defaultQuestions);
+  return defaultQuestions;
 }
 
 export async function generate50WeeklyContestQuestions(level: string): Promise<Question[]> {
@@ -163,11 +202,11 @@ export async function generateStudyPlan(
   mistakes: { question: string; correctAnswer: string; userAnswer: string }[]
 ): Promise<string> {
   try {
-    const res = await fetch("/api/generate-study-plan", {
+    const res = await fetchWithTimeout("/api/generate-study-plan", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ subject, mistakes })
-    });
+    }, 3000);
 
     if (res.ok) {
       const data = await res.json();
@@ -189,24 +228,12 @@ export async function generateLessonIndex(
   track?: string,
   semester?: number
 ): Promise<{ title: string; description: string }[]> {
-  try {
-    const res = await fetch("/api/generate-lesson-index", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ level, year, subject, track, semester })
-    });
-
-    if (res.ok) {
-      const data = await res.json();
-      if (data.index && Array.isArray(data.index) && data.index.length > 0) {
-        return data.index;
-      }
-    }
-  } catch (error: any) {
-    console.warn("API /api/generate-lesson-index fetch failed, using fallback:", error?.message || error);
+  const cacheKey = `${level}_${year}_${subject}_${track || ''}_${semester || ''}`;
+  if (lessonIndexCache.has(cacheKey)) {
+    return lessonIndexCache.get(cacheKey)!;
   }
 
-  // Fallback to comprehensive curriculum lessons
+  // 1. Instant Algerian Curriculum Lessons (Zero-wait loading)
   const { levelId, yearId } = deriveIdsFromNames(level, year);
   const subjectSlug = subject.includes('عرب') ? 'arabic' :
     subject.includes('رياضيات') ? 'math' :
@@ -219,7 +246,31 @@ export async function generateLessonIndex(
     subject.includes('إنجليز') ? 'english' :
     subject.includes('فلسف') ? 'philosophy' : 'generic';
 
-  return getCurriculumLessonsForSubject(levelId, yearId, subjectSlug, track);
+  const instantCurriculum = getCurriculumLessonsForSubject(levelId, yearId, subjectSlug, track);
+  if (instantCurriculum && instantCurriculum.length > 0) {
+    lessonIndexCache.set(cacheKey, instantCurriculum);
+    return instantCurriculum;
+  }
+
+  try {
+    const res = await fetchWithTimeout("/api/generate-lesson-index", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ level, year, subject, track, semester })
+    }, 2500);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.index && Array.isArray(data.index) && data.index.length > 0) {
+        lessonIndexCache.set(cacheKey, data.index);
+        return data.index;
+      }
+    }
+  } catch (error: any) {
+    console.warn("API /api/generate-lesson-index fetch failed, using fallback:", error?.message || error);
+  }
+
+  return instantCurriculum;
 }
 
 export async function generateLesson(
@@ -236,11 +287,11 @@ export async function generateLesson(
   }
 
   try {
-    const res = await fetch("/api/generate-lesson", {
+    const res = await fetchWithTimeout("/api/generate-lesson", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level, year, subject, lessonTitle, track, semester })
-    });
+    }, 6000);
 
     if (res.ok) {
       const data = await res.json();
@@ -272,11 +323,11 @@ export async function generateRevision(
   }
 
   try {
-    const res = await fetch("/api/generate-revision", {
+    const res = await fetchWithTimeout("/api/generate-revision", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level, year, subject, track, semester })
-    });
+    }, 5000);
 
     if (res.ok) {
       const data = await res.json();

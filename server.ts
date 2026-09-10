@@ -130,6 +130,12 @@ async function startServer() {
   app.post("/api/generate-questions", async (req, res) => {
     try {
       const { level, year, subject, difficulty = "medium", track = "", count = 10, semester } = req.body;
+      const cacheKey = `questions_${level}_${year}_${subject}_${difficulty}_${track || ''}_${semester || ''}_${count}`;
+      const cached = getCached(cacheKey, 20 * 60 * 1000);
+      if (cached && Array.isArray(cached) && cached.length >= count) {
+        return res.json({ success: true, questions: cached.slice(0, count), cached: true });
+      }
+
       const ai = getGeminiClient();
       if (!ai) {
         return res.status(200).json({ success: false, error: "GEMINI_API_KEY is not configured", questions: [] });
@@ -195,6 +201,9 @@ async function startServer() {
 
       const parsed = parseJSONContent(response.text || "[]");
       const generated = Array.isArray(parsed) ? parsed : [];
+      if (generated.length > 0) {
+        setCache(cacheKey, generated);
+      }
       return res.json({ success: true, questions: generated.length > 0 ? generated : getFallbackQuestions(subject, count, difficulty) });
     } catch (err: any) {
       console.warn("API /api/generate-questions handled error gracefully:", err?.message || err);
