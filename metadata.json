@@ -1,6 +1,6 @@
 {
   "name": "Apprendre DZ",
-  "description": "منصة Apprendre DZ التعليمية التفاعلية للدروس، المسابقات الأسبوعية، التمارين والتواصل مع الأساتذة.",
+  "description": "موقع Apprendre DZ يقدم أفضل الدروس والملخصات التعليمية في الجزائر لجميع المستويات.",
   "requestFramePermissions": ["camera", "microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
