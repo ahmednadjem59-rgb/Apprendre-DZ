@@ -511,6 +511,12 @@ ${contextInfo ? `بيانات التلميذ: ${contextInfo}` : ''}
     res.type("text/html").send("google-site-verification: google6256aebe573a00f2.html");
   });
 
+  // Sitemap.xml
+  app.get("/sitemap.xml", (_req, res) => {
+    const sitemapPath = path.join(process.cwd(), "public", "sitemap.xml");
+    res.type("application/xml").sendFile(sitemapPath);
+  });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
