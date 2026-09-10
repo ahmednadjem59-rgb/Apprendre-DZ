@@ -39,7 +39,12 @@
           "type": "array",
           "items": { "type": "string" }
         },
-        "selectedAvatar": { "type": "string" }
+        "selectedAvatar": { "type": "string" },
+        "seenQuestionIds": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "seenQuestionsDate": { "type": "string" }
       }
     },
     "ContestParticipant": {

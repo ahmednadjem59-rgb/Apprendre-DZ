@@ -13,21 +13,13 @@ function getGeminiClient(): GoogleGenAI | null {
     console.warn("GEMINI_API_KEY environment variable is missing.");
     return null;
   }
-  return new GoogleGenAI({
-    apiKey,
-    httpOptions: {
-      headers: {
-        'User-Agent': 'aistudio-build'
-      }
-    }
-  });
+  return new GoogleGenAI({ apiKey });
 }
 
-// Recommended models prioritizing standard text generation models
+// Recommended models prioritizing standard text generation models that are responsive and fast
 const CANDIDATE_MODELS = [
-  "gemini-3.8-flash",
-  "gemini-flash-latest",
-  "gemini-3.1-flash-lite"
+  "gemini-3.6-flash",
+  "gemini-flash-latest"
 ];
 
 // In-memory cache to reduce redundant Gemini API requests and avoid rate limits
@@ -62,12 +54,19 @@ async function generateWithModelFallback(
     // Up to 2 attempts per model with backoff on transient 503 / 429
     for (let attempt = 0; attempt < 2; attempt++) {
       try {
-        const response = await ai.models.generateContent({
+        console.log(`[Gemini] Calling model ${model} (attempt ${attempt + 1})...`);
+        const genPromise = ai.models.generateContent({
           model,
           contents: prompt,
           config
         });
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error(`Timeout after 12000ms on model ${model}`)), 12000)
+        );
+
+        const response: any = await Promise.race([genPromise, timeoutPromise]);
         if (response && (response.text !== undefined && response.text !== null)) {
+          console.log(`[Gemini] Success with model ${model}`);
           return response;
         }
       } catch (err: any) {
@@ -84,7 +83,7 @@ async function generateWithModelFallback(
           console.warn(`[Gemini API] Model ${model} is experiencing temporary high demand (attempt ${attempt + 1}/2)...`);
           if (attempt === 0) {
             // Brief pause before retry
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            await new Promise(resolve => setTimeout(resolve, 800));
             continue;
           }
         } else {
@@ -113,6 +112,52 @@ function parseJSONContent(text: string): any {
     }
     return null;
   }
+}
+
+/**
+ * Shuffles question options and balances the correctAnswer index so consecutive
+ * questions do not cluster on the same option index (1 -> 3 -> 0 -> 2 ...).
+ */
+function shuffleAndBalanceQuestionOptions(questions: any[]): any[] {
+  let prevCorrectIndex = -1;
+  return questions.map(q => {
+    if (!q || !Array.isArray(q.options) || q.options.length <= 1) return q;
+    const correctText = q.options[q.correctAnswer];
+    if (correctText === undefined) return q;
+
+    const originalOptions = [...q.options];
+    const totalOptions = originalOptions.length;
+    const allIndices = Array.from({ length: totalOptions }, (_, i) => i);
+    let candidateIndices = allIndices.filter(i => i !== prevCorrectIndex);
+    if (candidateIndices.length === 0) candidateIndices = allIndices;
+
+    const targetCorrectIndex = candidateIndices[Math.floor(Math.random() * candidateIndices.length)];
+    prevCorrectIndex = targetCorrectIndex;
+
+    const wrongOptions = originalOptions.filter((_, i) => i !== q.correctAnswer);
+    for (let i = wrongOptions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = wrongOptions[i];
+      wrongOptions[i] = wrongOptions[j];
+      wrongOptions[j] = temp;
+    }
+
+    const newOptions: string[] = [];
+    let wrongIdx = 0;
+    for (let i = 0; i < totalOptions; i++) {
+      if (i === targetCorrectIndex) {
+        newOptions.push(correctText);
+      } else {
+        newOptions.push(wrongOptions[wrongIdx++] || "");
+      }
+    }
+
+    return {
+      ...q,
+      options: newOptions,
+      correctAnswer: targetCorrectIndex
+    };
+  });
 }
 
 async function startServer() {
@@ -171,12 +216,13 @@ async function startServer() {
    - **الطور المتوسط (1AM - 4AM)**: الالتزام بكفاءات شهادة التعليم المتوسط (BEM)، مثل الأعداد النسبية، PGCD، طالس وفيثاغورس، الدارات، المناعة والوراثة، الجملة المركبة والبدل والتمييز.
    - **الطور الثانوي (1AS - 3AS)**: الالتزام الصارم ببرنامج البكالوريا والتخصص المحدد (علمي، رياضي، أدبي، لغات، تسيير).
 
-4. **شروط السؤال والخيارات**:
+4. **شروط السؤال والخيارات والتنويع العادل**:
    - 4 خيارات متقاربة ومقنعة علمياً ولغوياً، مع إجابة صحيحة واحدة قاطعة لا لبس فيها.
+   - **هام جداً للتوازن**: وزّع موضع الإجابة الصحيحة ("correctAnswer") عشوائياً بين الخيارات (0، 1، 2، 3). يُمنع منعاً باتاً جعل الإجابة دائماً الخيار 0 أو التركيز على موضع واحد، بل يجب أن يكون مزيجاً متغيراً وموزعاً بالتساوي.
    - شرح نموذجي وافٍ ومبسط في حقل "remedyPlan" يوضح للتلميذ القاعدة والتعليل البيداغوجي الصحيح المعتمد في المدرسة الجزائرية.
 
 أرجع مصفوفة JSON فقط بالشكل التالي:
-[{"id": "q_${difficulty}_${Math.random().toString(36).substr(2, 6)}", "text": "نص السؤال الدقيق", "options": ["خيار 1", "خيار 2", "خيار 3", "خيار 4"], "correctAnswer": 0, "remedyPlan": "الشرح البيداغوجي المفصل للإجابة الصحيحة"}]`;
+[{"id": "q_${difficulty}_${Math.random().toString(36).substr(2, 6)}", "text": "نص السؤال الدقيق", "options": ["خيار 1", "خيار 2", "خيار 3", "خيار 4"], "correctAnswer": 2, "remedyPlan": "الشرح البيداغوجي المفصل للإجابة الصحيحة"}]`;
 
       const response = await generateWithModelFallback(ai, prompt, {
         responseMimeType: "application/json",
@@ -201,13 +247,17 @@ async function startServer() {
 
       const parsed = parseJSONContent(response.text || "[]");
       const generated = Array.isArray(parsed) ? parsed : [];
-      if (generated.length > 0) {
-        setCache(cacheKey, generated);
+      const balancedGenerated = shuffleAndBalanceQuestionOptions(generated);
+      if (balancedGenerated.length > 0) {
+        setCache(cacheKey, balancedGenerated);
       }
-      return res.json({ success: true, questions: generated.length > 0 ? generated : getFallbackQuestions(subject, count, difficulty) });
+      const finalQuestions = balancedGenerated.length > 0 
+        ? balancedGenerated 
+        : shuffleAndBalanceQuestionOptions(getFallbackQuestions(subject, count, difficulty));
+      return res.json({ success: true, questions: finalQuestions });
     } catch (err: any) {
       console.warn("API /api/generate-questions handled error gracefully:", err?.message || err);
-      const fallback = getFallbackQuestions(req.body?.subject || "general", req.body?.count || 10, req.body?.difficulty || "medium");
+      const fallback = shuffleAndBalanceQuestionOptions(getFallbackQuestions(req.body?.subject || "general", req.body?.count || 10, req.body?.difficulty || "medium"));
       return res.status(200).json({ success: true, fallback: true, questions: fallback });
     }
   });
@@ -220,7 +270,7 @@ async function startServer() {
     // Return cached questions if available within 30 minutes
     const cached = getCached(cacheKey, 30 * 60 * 1000);
     if (cached && Array.isArray(cached) && cached.length >= count) {
-      return res.json({ success: true, questions: cached.slice(0, count) });
+      return res.json({ success: true, questions: shuffleAndBalanceQuestionOptions(cached.slice(0, count)) });
     }
 
     try {
@@ -228,7 +278,7 @@ async function startServer() {
       if (!ai) {
         const full50 = get50WeeklyContestQuestions(level);
         const fallbackQuestions = isAcademic ? full50.slice(25, 50) : full50.slice(0, 25);
-        return res.status(200).json({ success: true, fallback: true, questions: fallbackQuestions.slice(0, count) });
+        return res.status(200).json({ success: true, fallback: true, questions: shuffleAndBalanceQuestionOptions(fallbackQuestions.slice(0, count)) });
       }
 
       const typePrompt = isAcademic
@@ -239,7 +289,8 @@ async function startServer() {
 المطلوب في هذه الدفعة: ${typePrompt}.
 المستوى المستهدف: ${level || 'جميع الأطوار التعليمية'}.
 يجب أن تكون الأسئلة مشوقة، واضحة، دقيقة علمياً وباللغة العربية، مع 4 خيارات وإجابة صحيحة محددة وشرح مختصر.
-أرجع JSON فقط: [{"id": "contest_${isAcademic ? 'acad' : 'gen'}_${Math.random().toString(36).substr(2, 5)}", "text": "نص السؤال", "options": ["أ", "ب", "ج", "د"], "correctAnswer": 0, "remedyPlan": "شرح الإجابة الصحيحة"}]`;
+هام: وزّع موضع الإجابة الصحيحة عشوائياً بين 0 و 1 و 2 و 3، لا تركز على خيار واحد أبداً.
+أرجع JSON فقط: [{"id": "contest_${isAcademic ? 'acad' : 'gen'}_${Math.random().toString(36).substr(2, 5)}", "text": "نص السؤال", "options": ["أ", "ب", "ج", "د"], "correctAnswer": 1, "remedyPlan": "شرح الإجابة الصحيحة"}]`;
 
       const response = await generateWithModelFallback(ai, prompt, {
         responseMimeType: "application/json",
@@ -265,21 +316,22 @@ async function startServer() {
       const parsed = parseJSONContent(response.text || "[]");
       const generated = Array.isArray(parsed) ? parsed : [];
       if (generated.length >= Math.min(10, count)) {
-        setCache(cacheKey, generated);
-        return res.json({ success: true, questions: generated });
+        const balanced = shuffleAndBalanceQuestionOptions(generated);
+        setCache(cacheKey, balanced);
+        return res.json({ success: true, questions: balanced });
       }
 
       // If response had too few questions, supplement from verified contest bank
       const full50 = get50WeeklyContestQuestions(level);
       const fallbackQuestions = isAcademic ? full50.slice(25, 50) : full50.slice(0, 25);
-      const combined = [...generated, ...fallbackQuestions].slice(0, count);
+      const combined = shuffleAndBalanceQuestionOptions([...generated, ...fallbackQuestions].slice(0, count));
       setCache(cacheKey, combined);
       return res.json({ success: true, questions: combined });
     } catch (err: any) {
       console.warn("API /api/generate-contest-questions gracefully serving contest questions fallback:", err?.message || err);
       const full50 = get50WeeklyContestQuestions(level);
       const fallbackQuestions = isAcademic ? full50.slice(25, 50) : full50.slice(0, 25);
-      return res.status(200).json({ success: true, fallback: true, questions: fallbackQuestions.slice(0, count) });
+      return res.status(200).json({ success: true, fallback: true, questions: shuffleAndBalanceQuestionOptions(fallbackQuestions.slice(0, count)) });
     }
   });
 
@@ -480,11 +532,24 @@ async function startServer() {
   app.post("/api/chat-tutor", async (req, res) => {
     try {
       const { message, level, year, subject } = req.body;
+      if (!message || !message.trim()) {
+        return res.json({ 
+          success: true, 
+          reply: "مرحباً بك! أنا مساعدك الدراسي الذكي في منصة Apprendre DZ. اكتب سؤالك أو مسألتك وسأشرحها لك فوراً خطوة بخطوة." 
+        });
+      }
+
+      const cacheKey = `chat_tutor_${(message || '').trim().toLowerCase().slice(0, 120)}_${level || ''}_${year || ''}_${subject || ''}`;
+      const cached = getCached(cacheKey, 30 * 60 * 1000);
+      if (cached) {
+        return res.json({ success: true, reply: cached, cached: true });
+      }
+
       const ai = getGeminiClient();
       if (!ai) {
         return res.status(200).json({ 
           success: true, 
-          reply: "مرحباً بك! أنا مساعدك الدراسي الذكي في منصة Apprendre. يمكنك طرح أي سؤال في المناهج الجزائرية وسأشرحه لك بدقة وخطوة بخطوة." 
+          reply: "مرحباً بك! أنا مساعدك الدراسي الذكي في منصة Apprendre DZ. يمكنك طرح أي سؤال في المناهج الجزائرية وسأشرحه لك بدقة وخطوة بخطوة." 
         });
       }
 
@@ -494,24 +559,28 @@ async function startServer() {
         subject ? `المادة: ${subject}` : ''
       ].filter(Boolean).join(' | ');
 
-      const prompt = `أنت "المساعد الدراسي الذكي" في تطبيق Apprendre التعليمي الجزائري. أنت معلم خبير وصبور يشرح بأسلوب واضح وبسيط ومشجع ومبني على منهاج وزارة التربية الوطنية الجزائرية.
+      const prompt = `أنت "المساعد الدراسي الذكي" في منصة Apprendre DZ التعليمية المعتمدة على منهاج وزارة التربية الوطنية الجزائرية.
 ${contextInfo ? `بيانات التلميذ: ${contextInfo}` : ''}
 السؤال أو الرسالة:
 "${message}"
 
 المطلوب:
-1. إجابة مباشرة، علمية ودقيقة ومنسقة بنقاط واضحة بتنسيق Markdown.
-2. إذا تضمن السؤال مسألة حسابية أو لغوية أو علمية، اشرح طريقة الحل بالتفصيل مع التعليل.
-3. اختم بتشجيع أو نصيحة ذهبية تزيد ثقة التلميذ بنفسه.`;
+1. إجابة فورية، علمية ودقيقة ومبسطة ومنسقة بنقاط واضحة بتنسيق Markdown.
+2. إذا تضمن السؤال مسألة حسابية أو لغوية أو علمية، اشرح طريقة الحل بالتفصيل مع التعليل ووفق المصطلحات الجزائرية المعتمدة.
+3. اختم بتشجيع أو نصيحة تزيد ثقة التلميذ بنفسه.`;
 
-      const response = await generateWithModelFallback(ai, prompt);
+      const response = await generateWithModelFallback(ai, prompt, {
+        maxOutputTokens: 650,
+        temperature: 0.6
+      });
       const reply = response.text || "أنا هنا لمساعدتك! ما هو السؤال أو التمرين الذي ترغب في حله؟";
+      setCache(cacheKey, reply);
       return res.json({ success: true, reply });
     } catch (err: any) {
       console.warn("API /api/chat-tutor handled error gracefully:", err?.message || err);
       return res.status(200).json({ 
         success: true, 
-        reply: "أهلاً بك يا بطل! أنا جاهز لمساعدتك في أي سؤال تعليمي في الرياضيات، العلوم، الفيزياء، اللغات أو المواد الأدبية. اكتب سؤالك بدقة وسأساعدك فوراً." 
+        reply: "أهلاً بك يا بطل! أنا جاهز لمساعدتك في أي سؤال تعليمي في الرياضيات، العلوم، الفيزياء، اللغات أو المواد الأدبية وفق المنهاج الجزائري. تفضل بطرح سؤالك وسأشرحه لك خطوة بخطوة." 
       });
     }
   });

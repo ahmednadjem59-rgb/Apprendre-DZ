@@ -112,6 +112,7 @@ import { generateInstantLessonArticle } from './data/curriculumLessonsContent';
 import { Level, Subject, Question, TrackData, Difficulty, CustomQuestion, CustomLesson } from './types';
 import { generateQuestions, generateStudyPlan, generateContestQuestions, generate50WeeklyContestQuestions, generateLesson, generateRevision, generateLessonIndex, getInstantLessonContent, getInstantRevisionContent } from './services/contentService';
 import { getFallbackQuestions, get50WeeklyContestQuestions } from './data/fallbackQuestions';
+import { cleanQuestionText, shuffleAndBalanceQuestions, getDailyAnsweredSet, saveDailyAnswered, getTodayDateString } from './utils/questionHelpers';
 import Markdown from 'react-markdown';
 import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import { PrivacyPolicy } from './components/PrivacyPolicy';
@@ -368,6 +369,7 @@ export default function App() {
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
   const [studentId, setStudentId] = useState<string | null>(null);
   const [seenQuestionIds, setSeenQuestionIds] = useState<string[]>([]);
+  const [dailyAnsweredSet, setDailyAnsweredSet] = useState<{ ids: Set<string>; texts: Set<string> }>(() => getDailyAnsweredSet());
   const [notification, setNotification] = useState<{message: string, type: 'info' | 'success' | 'error'} | null>(null);
   const [notifiedMilestones, setNotifiedMilestones] = useState<number[]>([]);
   const prevTrophies = useRef<number>(0);
@@ -1167,35 +1169,76 @@ export default function App() {
     }
   };
 
-  const handleJoinGroupById = async (id: string) => {
-    if (!id || !id.trim()) {
-      showNotification('يرجى إدخال معرّف الغرفة', 'error');
+  const extractGroupIdFromInput = (inputStr: string): string => {
+    if (!inputStr) return '';
+    let clean = inputStr.trim();
+    try {
+      if (clean.includes('http://') || clean.includes('https://') || clean.includes('?') || clean.includes('/')) {
+        const urlObj = new URL(clean.startsWith('http') ? clean : `https://dummy.dz/${clean}`);
+        const paramId = urlObj.searchParams.get('joinRoom') ||
+                        urlObj.searchParams.get('room') ||
+                        urlObj.searchParams.get('chatRoom') ||
+                        urlObj.searchParams.get('chat') ||
+                        urlObj.searchParams.get('groupId') ||
+                        urlObj.searchParams.get('id');
+        if (paramId) return paramId.trim();
+
+        const segments = urlObj.pathname.split('/').filter(Boolean);
+        const lastSegment = segments[segments.length - 1];
+        if (lastSegment && !['chat', 'room', 'chats', 'groups'].includes(lastSegment.toLowerCase())) {
+          return lastSegment.trim();
+        }
+      }
+    } catch (e) {
+      // fallback to regex extraction
+    }
+
+    const match = clean.match(/(?:joinRoom|room|chatRoom|chat|groupId|id)=([a-zA-Z0-9_-]+)/i);
+    if (match && match[1]) {
+      return match[1].trim();
+    }
+
+    return clean.replace(/^[/#?]+/, '').replace(/[/#?]+$/, '').trim();
+  };
+
+  const handleJoinGroupById = async (idOrLink: string) => {
+    if (!idOrLink || !idOrLink.trim()) {
+      showNotification('يرجى إدخال رابط الغرفة أو معرّفها (Room ID)', 'error');
+      return;
+    }
+    const cleanId = extractGroupIdFromInput(idOrLink);
+    if (!cleanId) {
+      showNotification('الرابط أو المعرف غير صالح، يرجى التأكد من نسخه بدقة', 'error');
       return;
     }
     if (!user) {
-      showNotification('يرجى تسجيل الدخول أولاً للانضمام للغرفة', 'error');
+      try {
+        localStorage.setItem('pendingJoinGroupId', cleanId);
+      } catch (e) {}
+      showNotification('يرجى تسجيل الدخول بحسابك أولاً للانضمام للغرفة الدراسية 🎓', 'info');
+      setView('auth');
       return;
     }
     setIsJoiningGroup(true);
     try {
-      const trimmedId = id.trim();
-      const groupRef = doc(db, 'groups', trimmedId);
+      const groupRef = doc(db, 'groups', cleanId);
       const groupSnap = await getDoc(groupRef);
       if (groupSnap.exists()) {
         const groupData = groupSnap.data();
         if (groupData?.members?.includes(user.uid)) {
-          showNotification('أنت مشترك في هذه المجموعة بالفعل!', 'info');
+          showNotification(`أنت مشترك في هذه الغرفة بالفعل: "${groupData.name || cleanId}" ✨`, 'info');
           setActiveChatRoom({
             id: groupSnap.id,
             ...groupData,
             type: 'group'
           });
+          setView('chats');
           setJoinGroupIdInput('');
           return;
         }
         
-        if (groupData?.members && groupData.members.length >= 50) {
-          showNotification('عذراً، هذه المجموعة ممتلئة (الحد الأقصى 50 عضواً)!', 'error');
+        if (groupData?.members && groupData.members.length >= 60) {
+          showNotification('عذراً، هذه المجموعة ممتلئة (الحد الأقصى 60 عضواً)!', 'error');
           return;
         }
         
@@ -1203,16 +1246,23 @@ export default function App() {
           members: arrayUnion(user.uid)
         });
         
-        setActiveChatRoom({
+        const joinedRoom = {
           id: groupSnap.id,
           ...groupData,
           members: [...(groupData.members || []), user.uid],
           type: 'group'
-        });
+        };
+        setActiveChatRoom(joinedRoom);
+        setView('chats');
         setJoinGroupIdInput('');
-        showNotification(`🎉 تم الانضمام إلى الغرفة "${groupData.name || trimmedId}" بنجاح!`, 'success');
+        showNotification(`🎉 تم الانضمام إلى الغرفة الدراسية للأستاذ "${groupData.name || cleanId}" بنجاح! أهلاً بك!`, 'success');
       } else {
-        showNotification('لم يتم العثور على غرفة بهذا المعرّف (ID)', 'error');
+        // Check if user entered teacher code instead
+        if (cleanId.toUpperCase().startsWith('TR-')) {
+          showNotification('هذا كود أستاذ. يمكنك ربطه في خانة كود الأستاذ للتواصل المباشر.', 'info');
+        } else {
+          showNotification('لم يتم العثور على غرفة دراسية بهذا الرابط أو المعرّف (ID)', 'error');
+        }
       }
     } catch (e: any) {
       handleFirestoreError(e, OperationType.WRITE, 'groups');
@@ -1443,6 +1493,8 @@ export default function App() {
       setIsAiTyping(true);
 
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
         const res = await fetch('/api/chat-tutor', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1451,10 +1503,12 @@ export default function App() {
             level: selectedLevel?.name,
             year: selectedYear?.name,
             subject: selectedSubject?.name
-          })
+          }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
         const data = await res.json();
-        const reply = data.reply || 'أنا جاهز دائماً لمساعدتك في أي تمرين أو سؤال علمي!';
+        const reply = data.reply || 'أنا جاهز دائماً لمساعدتك في أي تمرين أو سؤال علمي وفق المنهاج الجزائري!';
         const botMsg = {
           id: 'ai-bot-' + Date.now(),
           senderId: 'ai-bot',
@@ -1467,7 +1521,17 @@ export default function App() {
         };
         setAiTutorMessages(prev => [...prev, botMsg]);
       } catch (err) {
-        console.warn('AI Tutor error:', err);
+        console.warn('AI Tutor error, presenting helpful response:', err);
+        setAiTutorMessages(prev => [...prev, {
+          id: 'ai-bot-' + Date.now(),
+          senderId: 'ai-bot',
+          senderName: 'المساعد الدراسي الذكي 🤖',
+          senderAvatar: null,
+          senderRole: 'ai',
+          text: 'أهلاً بك يا بطل! تم استلام سؤالك. أنا معك للإجابة والشرح خطوة بخطوة وفق المنهاج الجزائري. تفضل بطرح سؤالك بتحديد المادة والدرس وسأساعدك فوراً 🇩🇿✨',
+          timestamp: new Date().toISOString(),
+          roomId: 'ai_tutor_bot'
+        }]);
       } finally {
         setIsAiTyping(false);
       }
@@ -1945,9 +2009,17 @@ export default function App() {
                   updateDoc(userDocRef, updates).catch(e => console.error("Admin init error:", e instanceof Error ? e.message : e));
                 }
               }
+              const today = new Date().toISOString().split('T')[0];
               setContestPoints(data.contestPoints || 0);
               setUnlockedAvatars(data.unlockedAvatars || []);
               setSeenQuestionIds(data.seenQuestionIds || []);
+              if (data.seenQuestionsDate === today && Array.isArray(data.seenQuestionIds)) {
+                setDailyAnsweredSet(prev => {
+                  const nextIds = new Set(prev.ids);
+                  data.seenQuestionIds.forEach((qid: string) => nextIds.add(qid));
+                  return { ids: nextIds, texts: prev.texts };
+                });
+              }
               setSelectedAvatar(data.selectedAvatar || null);
               setStudentId(data.studentId || null);
 
@@ -1957,7 +2029,6 @@ export default function App() {
                 updateDoc(userDoc, { studentId: newId });
               }
               
-              const today = new Date().toISOString().split('T')[0];
               const lastActiveDate = data.lastActive?.split('T')[0];
               
               if (lastActiveDate !== today) {
@@ -2618,6 +2689,48 @@ export default function App() {
     }
   }, [user, isPremium, userRole, currentUserData]);
 
+  // Handle direct join links (?joinRoom=xyz, ?room=xyz, ?chatRoom=xyz)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const joinRoomId = urlParams.get('joinRoom') || urlParams.get('room') || urlParams.get('chatRoom') || urlParams.get('chat');
+    
+    if (joinRoomId) {
+      const cleanRoomId = extractGroupIdFromInput(joinRoomId);
+      if (cleanRoomId) {
+        if (user) {
+          handleJoinGroupById(cleanRoomId);
+          // Clean the query parameter from address bar
+          const nextParams = new URLSearchParams(window.location.search);
+          nextParams.delete('joinRoom');
+          nextParams.delete('room');
+          nextParams.delete('chatRoom');
+          nextParams.delete('chat');
+          const cleanSearch = nextParams.toString() ? `?${nextParams.toString()}` : '';
+          window.history.replaceState({}, document.title, window.location.pathname + cleanSearch);
+        } else {
+          try {
+            localStorage.setItem('pendingJoinGroupId', cleanRoomId);
+          } catch (e) {}
+          showNotification('مرحباً بك! يرجى تسجيل الدخول للانضمام تلقائياً إلى الغرفة الدراسية 🎓', 'info');
+          setView('auth');
+        }
+      }
+    }
+  }, [user]);
+
+  // Handle pending group join after login
+  useEffect(() => {
+    if (user) {
+      try {
+        const pending = localStorage.getItem('pendingJoinGroupId');
+        if (pending) {
+          localStorage.removeItem('pendingJoinGroupId');
+          handleJoinGroupById(pending);
+        }
+      } catch (e) {}
+    }
+  }, [user]);
+
   const toggleUserPremium = async (targetUserId: string, currentStatus: boolean) => {
     if (!isAdminUser) return;
     try {
@@ -2776,17 +2889,17 @@ export default function App() {
 
   const questions = useMemo(() => {
     if (isChallengeMode && activeChallenge?.questions) {
-      return activeChallenge.questions;
+      return shuffleAndBalanceQuestions(activeChallenge.questions);
     }
     if (isContestQuiz) {
       const dynamicBatch = dynamicQuestions[key] || [];
       if (dynamicBatch.length >= 50) {
-        return dynamicBatch.slice(0, 50);
+        return shuffleAndBalanceQuestions(dynamicBatch.slice(0, 50));
       }
       const contest50 = get50WeeklyContestQuestions(selectedLevel?.name);
-      return dynamicBatch.length > 0 
+      return shuffleAndBalanceQuestions(dynamicBatch.length > 0 
         ? [...dynamicBatch, ...contest50.slice(dynamicBatch.length, 50)]
-        : contest50;
+        : contest50);
     }
     // Match custom admin questions from Question Bank with strict level and year enforcement
     const isSubjectMatch = (q: CustomQuestion) => {
@@ -2853,21 +2966,37 @@ export default function App() {
 
     const rawCombined = [...combinedInitial, ...fallbackInstant];
     
-    // Deduplicate by question text to ensure NO question repeats ever in the active test!
+    // Deduplicate by normalized question text to ensure NO question repeats ever in the active test!
     const seenTexts = new Set<string>();
     const unique: Question[] = [];
     for (const q of rawCombined) {
-      const cleanText = q.text.trim();
+      const cleanText = cleanQuestionText(q.text);
       if (!seenTexts.has(cleanText)) {
         seenTexts.add(cleanText);
         unique.push(q);
       }
     }
-    
-    return unique;
-  }, [key, semesterKey, baseKey, yearLevelKey, dynamicQuestions, selectedSubject, isChallengeMode, activeChallenge, customQuestionsList, selectedLevelId, selectedYearId, selectedTrackId, selectedTrack, selectedSemester, selectedDifficulty, isContestQuiz]);
 
-  const currentQuestion = questions[currentQuestionIndex];
+    // Direct compliance with user requirement:
+    // "تأكد ان الاسئلة ا تكرر عندما يدر التلميذ اليوم سىال لايظهر له مرة أخرى"
+    // Filter out questions answered by the student TODAY:
+    const unAnsweredToday = unique.filter(q => {
+      const isSeenId = dailyAnsweredSet.ids.has(q.id);
+      const isSeenText = dailyAnsweredSet.texts.has(cleanQuestionText(q.text));
+      return !isSeenId && !isSeenText;
+    });
+
+    // If there are questions the student has not yet answered today, show ONLY them!
+    // If all questions have been solved today, fall back gracefully to unique so the student is never blocked.
+    const candidateQuestions = unAnsweredToday.length > 0 ? unAnsweredToday : unique;
+    
+    // Direct compliance with user requirement:
+    // "وتأكد ان ق الاسئلة عند اختيار خيار في الاجابة مثلا الان الاجابة الصحيحة ١ المرة ٢ يكون ٣ مزيج لاتركز على خيار واحد فقط"
+    // Dynamically randomize and balance option positions so consecutive questions do not concentrate on the same index!
+    return shuffleAndBalanceQuestions(candidateQuestions);
+  }, [key, semesterKey, baseKey, yearLevelKey, dynamicQuestions, selectedSubject, isChallengeMode, activeChallenge, customQuestionsList, selectedLevelId, selectedYearId, selectedTrackId, selectedTrack, selectedSemester, selectedDifficulty, isContestQuiz, dailyAnsweredSet]);
+
+  const currentQuestion = questions[Math.min(currentQuestionIndex, Math.max(0, questions.length - 1))] || questions[0];
 
   // Auto-generate more questions silently when needed in quiz mode
   useEffect(() => {
@@ -3407,10 +3536,23 @@ export default function App() {
       ]);
     }
 
+    // Save answered question to daily tracking (localStorage and state) so it never repeats today
+    if (currentQuestion) {
+      saveDailyAnswered(currentQuestion.id, currentQuestion.text);
+      setDailyAnsweredSet(prev => {
+        const nextIds = new Set(prev.ids);
+        const nextTexts = new Set(prev.texts);
+        nextIds.add(currentQuestion.id);
+        nextTexts.add(cleanQuestionText(currentQuestion.text));
+        return { ids: nextIds, texts: nextTexts };
+      });
+    }
+
     // Sync contest points and seen questions live
     if (user) {
       const userRef = doc(db, 'users', user.uid);
       const pointsChange = isCorrect ? 5 : -10;
+      const today = getTodayDateString();
       
       // Keep track of seen questions to avoid repeats as requested by user
       const updatedSeenIds = [...seenQuestionIds, currentQuestion.id].slice(-500);
@@ -3418,7 +3560,8 @@ export default function App() {
 
       const updateData: any = {
         totalPoints: increment(pointsChange),
-        seenQuestionIds: updatedSeenIds
+        seenQuestionIds: updatedSeenIds,
+        seenQuestionsDate: today
       };
       
       if (isContestQuiz) {
@@ -5382,17 +5525,17 @@ export default function App() {
                           <span>الدردشة والغرف ينشئها الأستاذ فقط</span>
                         </div>
 
-                        {/* Join Group with ID */}
+                        {/* Join Group with Link or ID */}
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between text-[10px] font-black text-slate-500">
-                            <span>انضم لغرفة أستاذك بالمعرف (ID)</span>
+                            <span>انضم لغرفة أستاذك برابط أو معرّف (ID)</span>
                             <Users size={12} />
                           </div>
                           <div className="flex gap-1.5">
                             <input 
                               id="group-join-id-input"
                               type="text"
-                              placeholder="ألصق معرف الغرفة..."
+                              placeholder="ألصق رابط الدردشة أو معرف الغرفة..."
                               value={joinGroupIdInput}
                               onChange={(e) => setJoinGroupIdInput(e.target.value)}
                               onKeyDown={(e) => {
@@ -5407,7 +5550,7 @@ export default function App() {
                               disabled={isJoiningGroup}
                               className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 rounded-xl font-black text-xs active:scale-95 transition-all flex items-center justify-center disabled:opacity-50"
                             >
-                              {isJoiningGroup ? '...' : 'انضم'}
+                              {isJoiningGroup ? '...' : 'انضمام'}
                             </button>
                           </div>
                         </div>
@@ -5678,6 +5821,29 @@ export default function App() {
                           </div>
                         ) : (
                           <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                            {activeChatRoom.type === 'group' && (
+                              <button
+                                onClick={async () => {
+                                  const shareUrl = `${window.location.origin}${window.location.pathname}?joinRoom=${activeChatRoom.id}`;
+                                  try {
+                                    if (navigator.clipboard) {
+                                      await navigator.clipboard.writeText(shareUrl);
+                                      showNotification('تم نسخ رابط الغرفة! شاركه مع تلاميذك في واتساب أو تليغرام للانضمام فوراً 📋🚀', 'success');
+                                    } else {
+                                      showNotification(`رابط الغرفة: ${shareUrl}`, 'info');
+                                    }
+                                  } catch (e) {
+                                    showNotification(`رابط الغرفة: ${shareUrl}`, 'info');
+                                  }
+                                }}
+                                className="px-2.5 sm:px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-black rounded-xl transition-all flex items-center gap-1.5 active:scale-95 border border-indigo-200/60"
+                                title="نسخ رابط الغرفة المباشر لمشاركته مع التلاميذ"
+                              >
+                                <Share2 size={13} />
+                                <span className="hidden sm:inline">رابط التلاميذ</span>
+                              </button>
+                            )}
+
                             {/* Audio Call Button */}
                             <button
                               onClick={() => handleStartCall('audio')}

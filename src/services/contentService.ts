@@ -2,6 +2,7 @@ import { Question, Difficulty } from "../types";
 import { getFallbackQuestions, get50WeeklyContestQuestions } from "../data/fallbackQuestions";
 import { getCurriculumLessonsForSubject } from "../data/curriculumLessons";
 import { generateInstantLessonArticle, generateInstantRevisionArticle } from "../data/curriculumLessonsContent";
+import { shuffleAndBalanceQuestions } from "../utils/questionHelpers";
 
 // In-memory caches for instant zero-latency retrieval across the application
 const lessonContentCache = new Map<string, string>();
@@ -126,8 +127,9 @@ export async function generateQuestions(
     if (res.ok) {
       const data = await res.json();
       if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
-        questionsCache.set(cacheKey, data.questions);
-        return data.questions;
+        const balanced = shuffleAndBalanceQuestions(data.questions);
+        questionsCache.set(cacheKey, balanced);
+        return balanced;
       }
     }
   } catch (error: any) {
@@ -135,8 +137,9 @@ export async function generateQuestions(
   }
 
   // Cache fallback to keep consecutive loads instant
-  questionsCache.set(cacheKey, fallback);
-  return fallback;
+  const balancedFallback = shuffleAndBalanceQuestions(fallback);
+  questionsCache.set(cacheKey, balancedFallback);
+  return balancedFallback;
 }
 
 export async function generateContestQuestions(
@@ -151,7 +154,7 @@ export async function generateContestQuestions(
   }
 
   const full50 = get50WeeklyContestQuestions(level);
-  const defaultQuestions = isAcademic ? full50.slice(25, 50) : full50.slice(0, 25);
+  const defaultQuestions = shuffleAndBalanceQuestions(isAcademic ? full50.slice(25, 50) : full50.slice(0, 25));
 
   try {
     const res = await fetchWithTimeout("/api/generate-contest-questions", {
@@ -163,8 +166,9 @@ export async function generateContestQuestions(
     if (res.ok) {
       const data = await res.json();
       if (data.questions && Array.isArray(data.questions) && data.questions.length > 0) {
-        contestQuestionsCache.set(cacheKey, data.questions);
-        return data.questions;
+        const balanced = shuffleAndBalanceQuestions(data.questions);
+        contestQuestionsCache.set(cacheKey, balanced);
+        return balanced;
       }
     }
   } catch (error: any) {
@@ -190,10 +194,10 @@ export async function generate50WeeklyContestQuestions(level: string): Promise<Q
       ? academicPart.slice(0, 25) 
       : [...academicPart, ...full50Fallback.slice(25, 50 - academicPart.length + 25)];
 
-    return [...safeGeneral, ...safeAcademic].slice(0, 50);
+    return shuffleAndBalanceQuestions([...safeGeneral, ...safeAcademic].slice(0, 50));
   } catch (e) {
     console.warn("Using instant 50 contest fallback:", e);
-    return get50WeeklyContestQuestions(level);
+    return shuffleAndBalanceQuestions(get50WeeklyContestQuestions(level));
   }
 }
 
