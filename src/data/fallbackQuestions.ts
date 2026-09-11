@@ -743,18 +743,42 @@ export const FALLBACK_QUESTIONS: Record<string, Question[]> = {
 
 // Aliases and category mappings for subjects
 export function normalizeSubjectKey(subject: string): string {
-  const s = subject.trim();
-  if (s.includes('عربي') || s.includes('العربية')) return "اللغة العربية";
-  if (s.includes('رياضيات') || s.includes('حساب')) return "الرياضيات";
-  if (s.includes('إسلامية') || s.includes('اسلامية') || s.includes('شرعية')) return "تربية إسلامية";
-  if (s.includes('مدنية')) return "تربية مدنية";
-  if (s.includes('فيزياء') || s.includes('فيزيائية') || s.includes('تكنولوجيا')) return "العلوم الفيزيائية";
-  if (s.includes('طبيعة') || s.includes('علوم') || s.includes('علمية')) return "العلوم الطبيعية";
-  if (s.includes('تاريخ') || s.includes('جغرافيا')) return "التاريخ";
-  if (s.includes('فرنسية') || s.includes('français')) return "اللغة الفرنسية";
-  if (s.includes('إنجليزية') || s.includes('انجليزية') || s.includes('english')) return "اللغة الإنجليزية";
-  if (s.includes('فلسفة')) return "الفلسفة";
-  return s;
+  if (!subject) return "اللغة العربية";
+  const s = subject.trim().toLowerCase();
+  
+  if (s.includes('عرب') || s === 'arabic' || s === 'ar') return "اللغة العربية";
+  if (s.includes('رياض') || s.includes('حساب') || s === 'math' || s === 'maths') return "الرياضيات";
+  if (s.includes('فيزيا') || s.includes('تكنولوجي') || s === 'physics') return "العلوم الفيزيائية";
+  if (s.includes('طبيع') || s.includes('علمي') || s.includes('علوم') || s === 'science') return "العلوم الطبيعية";
+  if (s.includes('فرنس') || s.includes('francais') || s.includes('français') || s === 'french' || s === 'fr') return "اللغة الفرنسية";
+  if (s.includes('إنجليز') || s.includes('انجليز') || s === 'english' || s === 'en') return "اللغة الإنجليزية";
+  if (s.includes('تاريخ') || s.includes('جغراف') || s === 'history') return "التاريخ";
+  if (s.includes('إسلام') || s.includes('اسلام') || s.includes('شرعي') || s === 'islamic') return "تربية إسلامية";
+  if (s.includes('مدني') || s === 'civic') return "تربية مدنية";
+  if (s.includes('فلسف') || s === 'philosophy') return "الفلسفة";
+  if (s.includes('إعلام') || s.includes('معلومات') || s === 'informatics') return "المعلوماتية";
+  if (s.includes('ألمان') || s === 'deutsch') return "اللغة الألمانية";
+  if (s.includes('إسبان') || s === 'espagnol') return "اللغة الإسبانية";
+  
+  return subject.trim();
+}
+
+export function getSubjectSlug(subject: string): string {
+  const norm = normalizeSubjectKey(subject);
+  switch (norm) {
+    case "اللغة العربية": return "arabic";
+    case "الرياضيات": return "math";
+    case "العلوم الطبيعية": return "science";
+    case "العلوم الفيزيائية": return "physics";
+    case "اللغة الفرنسية": return "french";
+    case "اللغة الإنجليزية": return "english";
+    case "التاريخ": return "history";
+    case "تربية إسلامية": return "islamic";
+    case "تربية مدنية": return "civic";
+    case "الفلسفة": return "philosophy";
+    case "المعلوماتية": return "informatics";
+    default: return norm.toLowerCase().replace(/[\s\-_]+/g, '');
+  }
 }
 
 // Comprehensive Grade-Specific Fallback Question Banks for Algerian Curriculum
@@ -853,19 +877,56 @@ export const GRADE_SPECIFIC_QUESTIONS: Record<string, Question[]> = {
   // Middle 4AM (السنة الرابعة متوسط - BEM)
   "middle-4am-arabic": [
     { id: "m4_ar_1", text: "البدل في لغتنا العربية يصنف من:", options: ["التوابع (يتبع المبدل منه في الإعراب)", "المنصوبات الأصلية", "المرفوعات فقط", "الأفعال"], correctAnswer: 0, difficulty: "easy", remedyPlan: "التوابع أربعة: النعت، العطف، التوكيد، والبدل." },
-    { id: "m4_ar_2", text: "في جملة 'ازداد التلميذُ تفوقاً'، إعراب كلمة تفوقاً هو:", options: ["تمييز منصوب", "حال منصوب", "مفعول به", "مفعول لأجله"], correctAnswer: 0, difficulty: "medium", remedyPlan: "الاسم المنصوب النكرة بعد أفعال الزيادة والامتلاء (ازداد، امتلأ، طاب) يعرب تمييز نسبة." }
+    { id: "m4_ar_2", text: "في جملة 'ازداد التلميذُ تفوقاً'، إعراب كلمة تفوقاً هو:", options: ["تمييز منصوب", "حال منصوب", "مفعول به", "مفعول لأجله"], correctAnswer: 0, difficulty: "medium", remedyPlan: "الاسم المنصوب النكرة بعد أفعال الزيادة والامتلاء (ازداد، امتلأ، طاب) يعرب تمييز نسبة." },
+    { id: "m4_ar_3", text: "ما نوع الجملة الفرعية في: 'ظننتُ التلميذَ (يراجعُ دروسَهُ)'؟", options: ["جملة فعلية في محل نصب مفعول به ثانٍ", "جملة في محل رفع خبر", "جملة في محل نصب حال", "جملة لا محل لها من الإعراب"], correctAnswer: 0, difficulty: "medium", remedyPlan: "الفعل 'ظن' يتعدى لمفعولين أصلهما مبتدأ وخبر، فالجملة الواقعة بعد المفعول الأول تكون مفعولاً به ثانياً." },
+    { id: "m4_ar_4", text: "في قولنا: 'جاء المعلمُ (يبتسمُ)'، إعراب الجملة بين قوسين:", options: ["جملة فعلية في محل نصب حال", "جملة في محل رفع نعت", "جملة مفعول به", "جملة مضاف إليه"], correctAnswer: 0, difficulty: "easy", remedyPlan: "الجمل بعد المعارف أحوال وبعد النكرات صفات، و'المعلم' معرفة فالجملة حالية." },
+    { id: "m4_ar_5", text: "حكم إعراب المعدود مع الأعداد من (11 إلى 99) هو:", options: ["مفرد منصوب على التمييز", "جمع مجرور بالإضافة", "مفرد مجرور بالإضافة", "مرفوع"], correctAnswer: 0, difficulty: "easy", remedyPlan: "معدود الأعداد المركبة والعقود والمعطوفة (11-99) يكون مفرداً منصوباً يعرب تمييزاً." },
+    { id: "m4_ar_6", text: "الاسم الممنوع من الصرف يُجر بـ:", options: ["الفتحة نيابة عن الكسرة ما لم يُضف أو يُعرّف بأل", "الكسرة دائماً", "الضمة", "الياء"], correctAnswer: 0, difficulty: "medium", remedyPlan: "يجر الممنوع من الصرف بالفتحة نيابة عن الكسرة، إلا إذا دخلت عليه أل أو أضيف." },
+    { id: "m4_ar_7", text: "حرف العطف الذي يفيد الترتيب مع التراخي هو:", options: ["ثُمَّ", "الفاء", "الواو", "أو"], correctAnswer: 0, difficulty: "easy", remedyPlan: "الفاء تفيد الترتيب والتعقيب، أما 'ثم' فتفيد الترتيب مع التراخي في الزمن." }
   ],
   "middle-4am-math": [
     { id: "m4_ma_1", text: "القاسم المشترك الأكبر PGCD للعددين 36 و 24 هو:", options: ["12", "6", "4", "24"], correctAnswer: 0, difficulty: "easy", remedyPlan: "قواسم 36 و 24 المشتركة هي {1, 2, 3, 4, 6, 12}، وأكبرها 12." },
     { id: "m4_ma_2", text: "تبسيط العبارة √(50) هو:", options: ["5√2", "2√5", "10√5", "25√2"], correctAnswer: 0, difficulty: "medium", remedyPlan: "√50 = √(25 × 2) = √25 × √2 = 5√2." },
-    { id: "m4_ma_3", text: "حسب مبرهنة طالس في المثلث، نستخدمها أساساً لـ:", options: ["حساب الأطوال وإثبات التوازي", "حساب الزوايا القائمة فقط", "حساب المساحة فقط", "رسم الدائرة المحيطة"], correctAnswer: 0, difficulty: "easy", remedyPlan: "خاصية طالس تمكننا من حساب الأطوال المجهولة، وخاصيتها العكسية لإثبات توازي مستقيمين." }
+    { id: "m4_ma_3", text: "حسب مبرهنة طالس في المثلث، نستخدمها أساساً لـ:", options: ["حساب الأطوال وإثبات التوازي", "حساب الزوايا القائمة فقط", "حساب المساحة فقط", "رسم الدائرة المحيطة"], correctAnswer: 0, difficulty: "easy", remedyPlan: "خاصية طالس تمكننا من حساب الأطوال المجهولة، وخاصيتها العكسية لإثبات توازي مستقيمين." },
+    { id: "m4_ma_4", text: "حل المعادلة x² = 49 في مجموعة الأعداد الحقيقية هو:", options: ["x = 7 أو x = -7", "x = 7 فقط", "x = -7 فقط", "لا يوجد حل"], correctAnswer: 0, difficulty: "easy", remedyPlan: "إذا كان a > 0 فإن للمعادلة x² = a حلين هما √a و -√a." },
+    { id: "m4_ma_5", text: "في مثلث قائم، جيب تمام الزاوية الحادة (cos) يساوي:", options: ["طول الضلع المجاور / طول الوتر", "طول الضلع المقابل / طول الوتر", "طول المقابل / طول المجاور", "الوتر / المجاور"], correctAnswer: 0, difficulty: "easy", remedyPlan: "قانون جيب التمام: cos = المجاور / الوتر، أما sin = المقابل / الوتر." },
+    { id: "m4_ma_6", text: "نشر العبارة الشهيرة (a - b)² يساوي:", options: ["a² - 2ab + b²", "a² + 2ab + b²", "a² - b²", "a² + b²"], correctAnswer: 0, difficulty: "easy", remedyPlan: "المتطابقة الشهيرة الثانية: (a - b)² = a² - 2ab + b²." },
+    { id: "m4_ma_7", text: "الدالة الخطية هي كل دالة تكتب على الشكل:", options: ["f(x) = ax", "f(x) = ax + b", "f(x) = a/x", "f(x) = x²"], correctAnswer: 0, difficulty: "easy", remedyPlan: "الدالة الخطية f(x) = ax وتمثيلها البياني مستقيم يمر بالمبدأ O." }
   ],
   "middle-4am-science": [
     { id: "m4_sc_1", text: "المغذيات الناتجة عن الهضم (أحماض أمينية، غلوكوز، فيتامينات) تمتص عبر الزغابات المعوية إلى:", options: ["الدم والبلغم (اللمف)", "البنكرياس", "المعدة مباشرة", "الكليتين"], correctAnswer: 0, difficulty: "easy", remedyPlan: "الزغابات المعوية تمتص المغذيات عبر طريقين: الطريق الدموي والطريق اللمفاوي." },
-    { id: "m4_sc_2", text: "الاستجابة المناعية الخلطية تتميز بتدخل:", options: ["الخلايا اللمفاوية البائية LB والأجسام المضادة", "الخلايا التائية LTc السامة", "الكريات الحمراء", "الصفائح الدموية"], correctAnswer: 0, difficulty: "medium", remedyPlan: "اللمفاويات LB تتمايز إلى خلايا بلازمية تفرز أجساماً مضادة نوعية تسري في الأخلاط (الدم واللمف)." }
+    { id: "m4_sc_2", text: "الاستجابة المناعية الخلطية تتميز بتدخل:", options: ["الخلايا اللمفاوية البائية LB والأجسام المضادة", "الخلايا التائية LTc السامة", "الكريات الحمراء", "الصفائح الدموية"], correctAnswer: 0, difficulty: "medium", remedyPlan: "اللمفاويات LB تتمايز إلى خلايا بلازمية تفرز أجساماً مضادة نوعية تسري في الأخلاط (الدم واللمف)." },
+    { id: "m4_sc_3", text: "الإنزيم النوعي المسؤول عن هضم النشاء في الفم هو:", options: ["الأميلاز اللعابي", "البروتياز", "الليباز", "المالتاز"], correctAnswer: 0, difficulty: "easy", remedyPlan: "الأميلاز اللعابي يفكك النشاء المطبوخ إلى سكر شعير (مالتوز)." },
+    { id: "m4_sc_4", text: "المركز العصبي المسؤول عن الأفعال الانعكاسية اللاإرادية هو:", options: ["النخاع الشوكي", "المخ", "المخيخ", "البصلة السيسائية"], correctAnswer: 0, difficulty: "easy", remedyPlan: "النخاع الشوكي هو المركز العصبي للأفعال اللاإرادية (المنعكسات الفطرية)." },
+    { id: "m4_sc_5", text: "الزمرة الدموية التي تعتبر معطياً عاماً لجميع الزمر هي:", options: ["O سالب (O-)", "AB موجب (AB+)", "A موجب", "B موجب"], correctAnswer: 0, difficulty: "easy", remedyPlan: "الزمرة O سالبة لا تحمل مولدات ضد على غشاء كرياتها الحمراء وتعتبر معطياً عاماً." }
+  ],
+  "middle-4am-physics": [
+    { id: "m4_ph_1", text: "الذرة التي تكتسب إلكتروناً أو أكثر تتحول إلى:", options: ["شاردة سالبة (أنيون)", "شاردة موجبة (كاتيون)", "جزيء متعادل", "نواة"], correctAnswer: 0, difficulty: "easy", remedyPlan: "اكتساب إلكترونات سالبة يعطي شحنة سالبة إجمالية، فتصبح الذرة شاردة سالبة." },
+    { id: "m4_ph_2", text: "في راسم الاهتزاز المهبطي، المنحنى البياني للتيار الكهربائي المتناوب الجيبي يكون على شكل:", options: ["موجات جيبية متناوبة (نوبات موجبة وسالبة)", "خط مستقيم أفقي", "خط منكسر", "نقاط متباعدة"], correctAnswer: 0, difficulty: "easy", remedyPlan: "التيار المتناوب يغير اتصاله وقيمته بمرور الزمن فيظهر على شكل تموجات جيبية." },
+    { id: "m4_ph_3", text: "دور القاطع التفاضلي والمأخذ الأرضي في الشبكة الكهربائية المنزلية هو:", options: ["حماية الأشخاص من الصعق الكهربائي والأجهزة من التلف", "زيادة استهلاك الطاقة", "رفع الجهد الكهربائي", "توليد الكهرباء"], correctAnswer: 0, difficulty: "easy", remedyPlan: "المأخذ الأرضي مع القاطع التفاضلي يضمنان تسريب التيار الضائع وقطع التغذية لحماية الإنسان." },
+    { id: "m4_ph_4", text: "العلاقة بين الثقل P والكتلة m عند شدة جاذبية g هي:", options: ["P = m × g", "P = m / g", "P = g / m", "P = m + g"], correctAnswer: 0, difficulty: "easy", remedyPlan: "الثقل هو قوة جذب الأرض للجسم ويحسب بالقانون: P = m × g بالنيوتن (N)." }
+  ],
+  "middle-4am-french": [
+    { id: "m4_fr_1", text: "Dans un texte argumentatif, la thèse représente:", options: ["L'opinion ou le point de vue défendu par l'auteur", "Un exemple illustratif", "La conclusion générale", "Les arguments des adversaires"], correctAnswer: 0, difficulty: "easy", remedyPlan: "La thèse est l'idée principale ou la prise de position soutenue par l'auteur à l'aide d'arguments." },
+    { id: "m4_fr_2", text: "Le connecteur logique 'par conséquent' exprime:", options: ["La conséquence", "La cause", "L'opposition", "Le but"], correctAnswer: 0, difficulty: "easy", remedyPlan: "'Par conséquent', 'donc', 'ainsi' sont des articulateurs logiques de conséquence." },
+    { id: "m4_fr_3", text: "Dans la phrase: 'La ville où je suis né est belle', le mot 'où' est un:", options: ["Pronom relatif", "Adverbe de temps", "Pronom personnel", "Conjonction de coordination"], correctAnswer: 0, difficulty: "medium", remedyPlan: "'Où' remplace le complément de lieu 'la ville' et introduit une proposition subordonnée relative." }
+  ],
+  "middle-4am-english": [
+    { id: "m4_en_1", text: "Choose the correct passive voice: 'The student wrote the lesson.'", options: ["The lesson was written by the student.", "The lesson is written by the student.", "The lesson written the student.", "The lesson has written by student."], correctAnswer: 0, difficulty: "medium", remedyPlan: "Past simple passive is formed with was/were + past participle (was written)." },
+    { id: "m4_en_2", text: "The relative pronoun used for people is:", options: ["Who", "Which", "Where", "When"], correctAnswer: 0, difficulty: "easy", remedyPlan: "'Who' refers to people, 'which' refers to things and animals, 'where' refers to places." }
   ],
   "middle-4am-history": [
-    { id: "m4_hi_1", text: "انعقد مؤتمر الصومام التاريخي الذي أعاد تنظيم الثورة الجزائرية في:", options: ["20 أوت 1956", "1 نوفمبر 1954", "19 مارس 1962", "5 جويلية 1962"], correctAnswer: 0, difficulty: "easy", remedyPlan: "انعقد مؤتمر الصومام في 20 أوت 1956 في قرية إيفري أوزلاقن بوادي الصومام." }
+    { id: "m4_hi_1", text: "انعقد مؤتمر الصومام التاريخي الذي أعاد تنظيم الثورة الجزائرية في:", options: ["20 أوت 1956", "1 نوفمبر 1954", "19 مارس 1962", "5 جويلية 1962"], correctAnswer: 0, difficulty: "easy", remedyPlan: "انعقد مؤتمر الصومام في 20 أوت 1956 في قرية إيفري أوزلاقن بوادي الصومام." },
+    { id: "m4_hi_2", text: "قائد هجومات الشمال القسنطيني في 20 أوت 1955 هو الشهيد البطل:", options: ["زيغود يوسف", "مصطفى بن بولعيد", "العربي بن مهيدي", "كريم بلقاسم"], correctAnswer: 0, difficulty: "easy", remedyPlan: "قاد الشهيد زيغود يوسف هجومات 20 أوت 1955 لفك الحصار عن منطقة الأوراس." },
+    { id: "m4_hi_3", text: "توقيع اتفاقيات إيفيان ووقف إطلاق النار كان في:", options: ["19 مارس 1962", "5 جويلية 1962", "1 نوفمبر 1954", "11 ديسمبر 1960"], correctAnswer: 0, difficulty: "easy", remedyPlan: "تم التوقيع على اتفاقيات إيفيان ووقف إطلاق النار رسمياً في 19 مارس 1962 (عيد النصر)." }
+  ],
+  "middle-4am-islamic": [
+    { id: "m4_is_1", text: "الحج ركن من أركان الإسلام، وهو فرض في العمر:", options: ["مرة واحدة للمستطيع", "كل خمس سنوات", "كل سنة", "مرتين"], correctAnswer: 0, difficulty: "easy", remedyPlan: "الحج فرض مرة واحدة في العمر على كل مسلم بالغ عاقل قادر ومستطيع مالياً وبدنياً." },
+    { id: "m4_is_2", text: "الركن الأعظم من أركان الحج الذي بدونه يبطل الحج هو:", options: ["الوقوف بعرفة", "طواف الإفاضة", "السعي بين الصفا والمروة", "الإحرام"], correctAnswer: 0, difficulty: "easy", remedyPlan: "قال النبي ﷺ: 'الحج عرفة'، فالوقوف بعرفة هو الركن الأعظم." }
+  ],
+  "middle-4am-civic": [
+    { id: "m4_ci_1", text: "القانون الأسمى للبلاد الذي ينظم السلطات ويحدد حقوق وواجبات المواطنين هو:", options: ["الدستور", "قانون العقوبات", "قانون العمل", "اللائحة الداخلية"], correctAnswer: 0, difficulty: "easy", remedyPlan: "الدستور هو الوثيقة القانونية الأسمى في الدولة والتشريع الأساسي للجمهورية." },
+    { id: "m4_ci_2", text: "الهيئة القضائية العليا التي تمثل قمة الهرم القضائي العادي في الجزائر هي:", options: ["المحكمة العليا", "المجلس القضائي", "المحكمة الابتدائية", "مجلس الدولة"], correctAnswer: 0, difficulty: "easy", remedyPlan: "المحكمة العليا تراقب صحة تطبيق القانون وتعد قمة هرم القضاء العادي." }
   ],
 
   // Secondary 3AS (السنة الثالثة ثانوي - بكالوريا BAC)
@@ -1063,7 +1124,7 @@ export function generateProceduralInfiniteQuestions(
       });
     }
     // 3. Arabic Language
-    else if (normSub.includes('عربي') || normSub.includes('arabic')) {
+    else if (normSub.includes('عرب') || normSub.includes('arabic')) {
       const verbs = [
         { root: "كتبَ", ismFail: "كاتب", ismMaf: "مكتوب", masdar: "كتابة" },
         { root: "درسَ", ismFail: "دارس", ismMaf: "مدروس", masdar: "دراسة" },
@@ -1086,35 +1147,35 @@ export function generateProceduralInfiniteQuestions(
         remedyPlan: `يُصاغ اسم الفاعل من الثلاثي على وزن (فاعِل) واسم المفعول على وزن (مفعُول). فالصحيح: ${correctAns}.`
       });
     }
-    // 4. Islamic / History / Geography / General
-    else {
-      const generalPool = [
+    // 4. Natural Sciences (العلوم الطبيعية والحياة)
+    else if (normSub.includes('طبيع') || normSub.includes('علوم') || normSub.includes('science')) {
+      const sciencePool = [
         {
-          text: "ما هي أطول سلسلة جبلية تمتد في شمال الجزائر؟",
-          ans: "سلسلة الأطلس التلي",
-          wrongs: ["سلسلة الهقار", "جبال الطاسيلي", "الأطلس الصحراوي فقط"],
-          exp: "يمتد الأطلس التلي بمحاذاة الساحل الجزائري ويضم جبال جرجرة والونشريس والبابور."
+          text: "الوحدة البنائية والوظيفية الأساسية لجميع الكائنات الحية هي:",
+          ans: "الخلية",
+          wrongs: ["النسيج", "العضو", "الجهاز"],
+          exp: "الخلية هي الوحدة الأساسية للحياة والتركيب في كل الكائنات الحية."
         },
         {
-          text: "في أي عام اندلعت الثورة التحريرية الجزائرية المباركة؟",
-          ans: "1 نوفمبر 1954",
-          wrongs: ["5 جويلية 1962", "8 ماي 1945", "19 مارس 1962"],
-          exp: "اندلعت الثورة الجزائرية التحريرية الكبرى في الأول من نوفمبر 1954 بنداء أول نوفمبر الشهير."
+          text: "العملية الحيوية التي يقوم بها النبات الأخضر لصنع غذائه بوجود الضوء واليخضور هي:",
+          ans: "التركيب الضوئي",
+          wrongs: ["التنفس الخلوي", "النتح", "الامتصاص فقط"],
+          exp: "التركيب الضوئي يحول الطاقة الضوئية إلى طاقة كيميائية مخزنة في المواد العضوية."
         },
         {
-          text: "ما هو الركن الأول من أركان الإسلام الخمسة؟",
-          ans: "الشهادتان (شهادة أن لا إله إلا الله وأن محمداً رسول الله)",
-          wrongs: ["إقام الصلاة", "إيتاء الزكاة", "صوم رمضان"],
-          exp: "الركن الأول هو شهادة أن لا إله إلا الله وأن محمداً رسول الله، وهو مفتاح الدخول في الإسلام."
+          text: "العضو المسؤول عن ضخ الدم وتوزيعه في كافة أنحاء الجسم هو:",
+          ans: "القلب",
+          wrongs: ["الرئتان", "الكبد", "المعدة"],
+          exp: "القلب هو المضخة المركزية للجهاز الدوراني التي تحرك الدم باستمرار."
         },
         {
-          text: "أكبر ولاية في الجزائر من حيث المساحة الجغرافية هي:",
-          ans: "ولاية تمنراست (أو تمنراست/برج باجي مختار)",
-          wrongs: ["ولاية الجزائر", "ولاية وهران", "ولاية سطيف"],
-          exp: "تعتبر ولايات الجنوب الجزائري الأكبر مساحة وتتصدرها ولايات أقصى الجنوب."
+          text: "تتم عملية المبادلات الغازية التنفسية في الرئتين على مستوى:",
+          ans: "الأسناخ الرئوية",
+          wrongs: ["القصبة الهوائية", "الحنجرة", "الشعب الهوائية"],
+          exp: "الأسناخ الرئوية ذات الجدران الرقيقة والشبكة الدموية الغزيرة هي مقر تبادل الغازات."
         }
       ];
-      const item = generalPool[i % generalPool.length];
+      const item = sciencePool[i % sciencePool.length];
       const allOptions = [item.ans, ...item.wrongs].sort(() => Math.random() - 0.5);
       list.push({
         id: qId,
@@ -1122,6 +1183,186 @@ export function generateProceduralInfiniteQuestions(
         options: allOptions,
         correctAnswer: allOptions.indexOf(item.ans),
         difficulty: 'medium',
+        remedyPlan: item.exp
+      });
+    }
+    // 5. French Language (اللغة الفرنسية)
+    else if (normSub.includes('فرنس') || normSub.includes('french')) {
+      const frenchPool = [
+        {
+          text: "Dans la phrase 'Les élèves écoutent attentivement', le mot 'attentivement' est un:",
+          ans: "Adverbe de manière",
+          wrongs: ["Adjectif qualificatif", "Nom commun", "Verbe à l'infinitif"],
+          exp: "Les mots terminés par '-ment' sont généralement des adverbes de manière."
+        },
+        {
+          text: "Quel est le participe passé du verbe 'choisir'?",
+          ans: "Choisi",
+          wrongs: ["Choisissant", "Choisira", "Choisit"],
+          exp: "Les verbes du 2ème groupe font leur participe passé en -i (choisir -> choisi)."
+        },
+        {
+          text: "Trouvez l'antonyme (le contraire) du mot 'éphémère':",
+          ans: "Durable",
+          wrongs: ["Court", "Passager", "Rapide"],
+          exp: "'Éphémère' signifie qui dure très peu de temps; son antonyme est 'durable'."
+        }
+      ];
+      const item = frenchPool[i % frenchPool.length];
+      const allOptions = [item.ans, ...item.wrongs].sort(() => Math.random() - 0.5);
+      list.push({
+        id: qId,
+        text: item.text,
+        options: allOptions,
+        correctAnswer: allOptions.indexOf(item.ans),
+        difficulty: 'medium',
+        remedyPlan: item.exp
+      });
+    }
+    // 6. English Language (اللغة الإنجليزية)
+    else if (normSub.includes('إنجليز') || normSub.includes('انجليز') || normSub.includes('english')) {
+      const englishPool = [
+        {
+          text: "Choose the correct past tense of the irregular verb 'to go':",
+          ans: "Went",
+          wrongs: ["Goed", "Gone", "Going"],
+          exp: "The simple past of the irregular verb 'go' is 'went'."
+        },
+        {
+          text: "What is the opposite of the adjective 'generous'?",
+          ans: "Stingy",
+          wrongs: ["Kind", "Polite", "Helpful"],
+          exp: "'Stingy' or 'mean' is the direct opposite of 'generous'."
+        },
+        {
+          text: "Which suffix is used to make the comparative of short adjectives (e.g., tall)?",
+          ans: "-er (taller)",
+          wrongs: ["-est", "-ly", "-ful"],
+          exp: "Short adjectives take the suffix '-er' in the comparative form: taller than."
+        }
+      ];
+      const item = englishPool[i % englishPool.length];
+      const allOptions = [item.ans, ...item.wrongs].sort(() => Math.random() - 0.5);
+      list.push({
+        id: qId,
+        text: item.text,
+        options: allOptions,
+        correctAnswer: allOptions.indexOf(item.ans),
+        difficulty: 'medium',
+        remedyPlan: item.exp
+      });
+    }
+    // 7. Islamic Education (التربية الإسلامية)
+    else if (normSub.includes('إسلام') || normSub.includes('islamic')) {
+      const islamicPool = [
+        {
+          text: "ما هو الركن الأول من أركان الإسلام الخمسة؟",
+          ans: "الشهادتان (شهادة أن لا إله إلا الله وأن محمداً رسول الله)",
+          wrongs: ["إقام الصلاة", "إيتاء الزكاة", "صوم رمضان"],
+          exp: "الركن الأول هو شهادة أن لا إله إلا الله وأن محمداً رسول الله، وهو مفتاح الدخول في الإسلام."
+        },
+        {
+          text: "الصلوات المفروضة على المسلم في اليوم والليلة عددها:",
+          ans: "خمس صلوات",
+          wrongs: ["ثلاث صلوات", "أربع صلوات", "ست صلوات"],
+          exp: "فرض الله على المسلمين خمس صلوات في اليوم والليلة (الصبح، الظهر، العصر، المغرب، العشاء)."
+        },
+        {
+          text: "سورة الفاتحة تسمى أيضاً بـ:",
+          ans: "أم الكتاب والسبع المثاني",
+          wrongs: ["عروس القرآن", "قلب القرآن", "سورة التوحيد"],
+          exp: "تسمى الفاتحة بأم الكتاب وفاتحة الكتاب والسبع المثاني لأنها سبع آيات تثنى في كل ركعة."
+        }
+      ];
+      const item = islamicPool[i % islamicPool.length];
+      const allOptions = [item.ans, ...item.wrongs].sort(() => Math.random() - 0.5);
+      list.push({
+        id: qId,
+        text: item.text,
+        options: allOptions,
+        correctAnswer: allOptions.indexOf(item.ans),
+        difficulty: 'easy',
+        remedyPlan: item.exp
+      });
+    }
+    // 8. Civic Education (التربية المدنية)
+    else if (normSub.includes('مدني') || normSub.includes('civic')) {
+      const civicPool = [
+        {
+          text: "القانون الأعلى في الدولة الذي ينظم شؤون الحكم ويحدد الحقوق والواجبات هو:",
+          ans: "الدستور",
+          wrongs: ["المرسوم التنفيذي", "القانون البلدي", "النظام الداخلي"],
+          exp: "الدستور هو الوثيقة الأساسية الأسمى التي تبنى عليها كافة القوانين والتشريعات."
+        },
+        {
+          text: "المجلس الشعبي البلدي يمثل هيئة منتخبة على مستوى:",
+          ans: "البلدية",
+          wrongs: ["الولاية", "الجمهورية بأكملها", "الدائرة فقط"],
+          exp: "المجلس الشعبي البلدي (APC) ينتخبه سكان البلدية لإدارة شؤونها المحلية."
+        }
+      ];
+      const item = civicPool[i % civicPool.length];
+      const allOptions = [item.ans, ...item.wrongs].sort(() => Math.random() - 0.5);
+      list.push({
+        id: qId,
+        text: item.text,
+        options: allOptions,
+        correctAnswer: allOptions.indexOf(item.ans),
+        difficulty: 'easy',
+        remedyPlan: item.exp
+      });
+    }
+    // 9. History & Geography (التاريخ والجغرافيا)
+    else if (normSub.includes('تاريخ') || normSub.includes('جغراف') || normSub.includes('history')) {
+      const histPool = [
+        {
+          text: "في أي عام اندلعت الثورة التحريرية الجزائرية الكبرى؟",
+          ans: "1 نوفمبر 1954",
+          wrongs: ["5 جويلية 1962", "8 ماي 1945", "19 مارس 1962"],
+          exp: "اندلعت الثورة الجزائرية التحريرية الكبرى في الأول من نوفمبر 1954."
+        },
+        {
+          text: "ما هي أطول سلسلة جبلية تمتد في شمال الجزائر؟",
+          ans: "سلسلة الأطلس التلي",
+          wrongs: ["سلسلة الهقار", "جبال الطاسيلي", "الأطلس الصحراوي فقط"],
+          exp: "يمتد الأطلس التلي بمحاذاة الساحل الجزائري ويضم جبال جرجرة والونشريس والبابور."
+        },
+        {
+          text: "أكبر ولاية في الجزائر من حيث المساحة الجغرافية هي:",
+          ans: "ولاية تمنراست",
+          wrongs: ["ولاية الجزائر", "ولاية وهران", "ولاية سطيف"],
+          exp: "تعتبر ولايات الجنوب الجزائري الأكبر مساحة وتتصدرها ولايات أقصى الجنوب."
+        }
+      ];
+      const item = histPool[i % histPool.length];
+      const allOptions = [item.ans, ...item.wrongs].sort(() => Math.random() - 0.5);
+      list.push({
+        id: qId,
+        text: item.text,
+        options: allOptions,
+        correctAnswer: allOptions.indexOf(item.ans),
+        difficulty: 'medium',
+        remedyPlan: item.exp
+      });
+    }
+    // 10. General fallback (only if unclassified)
+    else {
+      const mathFallback = [
+        {
+          text: "مجموع زوايا أي مثلث في الهندسة الإقليدية يساوي:",
+          ans: "180 درجة",
+          wrongs: ["90 درجة", "360 درجة", "270 درجة"],
+          exp: "مجموع قياسات الزوايا الداخلية لأي مثلث يساوي دائماً 180°."
+        }
+      ];
+      const item = mathFallback[0];
+      const allOptions = [item.ans, ...item.wrongs].sort(() => Math.random() - 0.5);
+      list.push({
+        id: qId,
+        text: item.text,
+        options: allOptions,
+        correctAnswer: allOptions.indexOf(item.ans),
+        difficulty: 'easy',
         remedyPlan: item.exp
       });
     }
@@ -1139,19 +1380,17 @@ export function getFallbackQuestions(
   trackId?: string
 ): Question[] {
   const normalizedKey = normalizeSubjectKey(subject);
+  const subSlug = getSubjectSlug(subject);
   
-  // 1. Try to find exact grade & subject match
-  const candidateKeys = [
-    `${levelId}-${yearId}-${trackId}-${normalizedKey}`,
-    `${levelId}-${yearId}-${normalizedKey}`,
-    `${levelId}-${yearId}-arabic`,
-    `${levelId}-${yearId}-math`,
-    `${levelId}-${yearId}-science`,
-    `${levelId}-${yearId}-physics`,
-    `${levelId}-${yearId}-history`,
-    `${levelId}-${yearId}-islamic`,
-    `${levelId}-${yearId}-philosophy`,
-  ];
+  // 1. Collect ONLY grade-specific questions that strictly match this subject slug
+  const candidateKeys: string[] = [];
+  if (levelId && yearId) {
+    if (trackId) candidateKeys.push(`${levelId}-${yearId}-${trackId}-${subSlug}`);
+    candidateKeys.push(`${levelId}-${yearId}-${subSlug}`);
+  }
+  if (levelId) {
+    candidateKeys.push(`${levelId}-${subSlug}`);
+  }
 
   let gradeSpecificPool: Question[] = [];
   for (const k of candidateKeys) {
@@ -1160,38 +1399,11 @@ export function getFallbackQuestions(
     }
   }
 
-  // Also check direct subject lookup in GRADE_SPECIFIC_QUESTIONS
-  if (levelId && yearId) {
-    const subShort = normalizedKey.includes('عربي') ? 'arabic' :
-                     normalizedKey.includes('رياضيات') ? 'math' :
-                     normalizedKey.includes('طبيعة') || normalizedKey.includes('علوم') ? 'science' :
-                     normalizedKey.includes('فيزياء') ? 'physics' :
-                     normalizedKey.includes('إسلامية') ? 'islamic' :
-                     normalizedKey.includes('تاريخ') ? 'history' :
-                     normalizedKey.includes('فلسفة') ? 'philosophy' : '';
-    if (subShort) {
-      const directKey = `${levelId}-${yearId}-${subShort}`;
-      if (GRADE_SPECIFIC_QUESTIONS[directKey]) {
-        gradeSpecificPool = [...gradeSpecificPool, ...GRADE_SPECIFIC_QUESTIONS[directKey]];
-      }
-    }
-  }
-
-  // 2. Fallback to general pool for the subject if not primary level or if pool is empty
-  let pool = gradeSpecificPool;
-  if (pool.length === 0) {
-    // For primary pupils, NEVER serve high-school physics or baccalaureate calculus!
-    if (levelId === 'primary') {
-      // Collect all primary questions that match or are age-appropriate
-      const primaryKeys = Object.keys(GRADE_SPECIFIC_QUESTIONS).filter(k => k.startsWith('primary-'));
-      pool = primaryKeys.flatMap(k => GRADE_SPECIFIC_QUESTIONS[k]);
-    } else if (levelId === 'middle') {
-      const middleKeys = Object.keys(GRADE_SPECIFIC_QUESTIONS).filter(k => k.startsWith('middle-'));
-      pool = middleKeys.flatMap(k => GRADE_SPECIFIC_QUESTIONS[k]);
-    } else {
-      pool = FALLBACK_QUESTIONS[normalizedKey] || FALLBACK_QUESTIONS["general"] || [];
-    }
-  }
+  // 2. Add questions from the dedicated fallback pool for THIS EXACT SUBJECT
+  const subjectFallbackPool = FALLBACK_QUESTIONS[normalizedKey] || [];
+  
+  // STRICT ISOLATION: Pool consists ONLY of questions from this specific subject
+  let pool = [...gradeSpecificPool, ...subjectFallbackPool];
 
   // Filter by difficulty if requested and available
   let filtered = pool;
@@ -1202,51 +1414,50 @@ export function getFallbackQuestions(
     }
   }
 
+  // Deduplicate pool by text
+  const seenTexts = new Set<string>();
+  const uniquePool: Question[] = [];
+  for (const q of filtered) {
+    const t = q.text.trim();
+    if (!seenTexts.has(t)) {
+      seenTexts.add(t);
+      uniquePool.push(q);
+    }
+  }
+
   // Randomize questions order
-  const shuffled = [...filtered].sort(() => 0.5 - Math.random());
+  const shuffled = [...uniquePool].sort(() => 0.5 - Math.random());
   
   const result: Question[] = [];
-  
   for (const q of shuffled) {
     if (result.length >= count) break;
     result.push({
       ...q,
-      id: `${q.id}_rnd_${Math.random().toString(36).substring(2, 6)}`
+      id: `${q.id}`
     });
   }
 
-  // If still need more, append without repeating
-  if (result.length < count) {
-    for (const pq of pool) {
-      if (result.length >= count) break;
-      if (!result.some(r => r.text === pq.text)) {
-        result.push({
-          ...pq,
-          id: `${pq.id}_extra_${Math.random().toString(36).substring(2, 6)}`
-        });
-      }
-    }
-  }
-
-  // 3. If STILL need more to fulfill count (Infinite guarantees), dynamically generate procedurally!
+  // 3. If STILL need more to fulfill count, dynamically generate procedurally FOR THIS EXACT SUBJECT!
   if (result.length < count) {
     const needed = count - result.length;
     const procedural = generateProceduralInfiniteQuestions(
       normalizedKey,
       levelId || 'middle',
-      yearId || '1am',
+      yearId || '4am',
       needed + 5,
       difficulty || 'medium'
     );
     for (const pq of procedural) {
       if (result.length >= count) break;
-      if (!result.some(r => r.text === pq.text)) {
+      const t = pq.text.trim();
+      if (!seenTexts.has(t)) {
+        seenTexts.add(t);
         result.push(pq);
       }
     }
   }
 
-  return result.length > 0 ? result : (FALLBACK_QUESTIONS["general"] || []).slice(0, count);
+  return result;
 }
 
 export function get50WeeklyContestQuestions(level?: string): Question[] {

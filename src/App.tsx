@@ -111,7 +111,7 @@ import { getCurriculumLessonsForSubject } from './data/curriculumLessons';
 import { generateInstantLessonArticle } from './data/curriculumLessonsContent';
 import { Level, Subject, Question, TrackData, Difficulty, CustomQuestion, CustomLesson } from './types';
 import { generateQuestions, generateStudyPlan, generateContestQuestions, generate50WeeklyContestQuestions, generateLesson, generateRevision, generateLessonIndex, getInstantLessonContent, getInstantRevisionContent } from './services/contentService';
-import { getFallbackQuestions, get50WeeklyContestQuestions } from './data/fallbackQuestions';
+import { getFallbackQuestions, get50WeeklyContestQuestions, getSubjectSlug, normalizeSubjectKey } from './data/fallbackQuestions';
 import { cleanQuestionText, shuffleAndBalanceQuestions, getDailyAnsweredSet, saveDailyAnswered, getTodayDateString } from './utils/questionHelpers';
 import Markdown from 'react-markdown';
 import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
@@ -1011,90 +1011,97 @@ export default function App() {
     const lower = raw.toLowerCase();
     const upper = raw.toUpperCase();
     
-    // Clean code variations: strip out 'ST-', spaces, hashes, underscores
-    const strippedCode = upper.replace(/^ST[-_\s]?/i, '').replace(/[\s_-]/g, '');
-    const candidateST = strippedCode ? `ST-${strippedCode}` : '';
+    // Clean variations: strip 'ST-', 'ALG-', spaces, dashes, underscores, hashes
+    const cleanCore = upper.replace(/^(ST|ALG)[-_\s#]?/i, '').replace(/[\s_\-#]/g, '');
+    const candidateST = cleanCore ? `ST-${cleanCore}` : '';
+    const candidateALG = cleanCore ? `ALG-${cleanCore}` : '';
 
+    // 1. Check if raw is a UID directly
     try {
-      // 1. Try studentId exact match
-      let snap = await getDocs(query(collection(db, 'users'), where('studentId', '==', upper), limit(1)));
-      if (!snap.empty) {
-        const d = snap.docs[0];
-        const data = d.data();
-        return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
+      const directDoc = await getDoc(doc(db, 'users', raw));
+      if (directDoc.exists()) {
+        const data = directDoc.data();
+        return { uid: directDoc.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
       }
+    } catch (e) {}
 
-      // 2. Try studentId with ST- prefix if needed
-      if (candidateST) {
-        snap = await getDocs(query(collection(db, 'users'), where('studentId', '==', candidateST), limit(1)));
-        if (!snap.empty) {
-          const d = snap.docs[0];
-          const data = d.data();
-          return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
-        }
-
-        // 3. Try studentId without ST- prefix
-        snap = await getDocs(query(collection(db, 'users'), where('studentId', '==', strippedCode), limit(1)));
-        if (!snap.empty) {
-          const d = snap.docs[0];
-          const data = d.data();
-          return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
-        }
-      }
-
-      // 4. Try email in lowercase
-      snap = await getDocs(query(collection(db, 'users'), where('email', '==', lower), limit(1)));
-      if (!snap.empty) {
-        const d = snap.docs[0];
-        const data = d.data();
-        return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
-      }
-
-      // 5. Try email exact raw
-      if (lower !== raw) {
-        snap = await getDocs(query(collection(db, 'users'), where('email', '==', raw), limit(1)));
-        if (!snap.empty) {
-          const d = snap.docs[0];
-          const data = d.data();
-          return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
-        }
-      }
-
-      // 6. Try direct user doc by UID
+    // 2. Query by studentId exact variations
+    const studentQueries = [upper, cleanCore, candidateST, candidateALG, lower, raw].filter(Boolean);
+    for (const qVal of Array.from(new Set(studentQueries))) {
       try {
-        const directDoc = await getDoc(doc(db, 'users', raw));
-        if (directDoc.exists()) {
-          const data = directDoc.data();
-          return { uid: directDoc.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
+        const snap = await getDocs(query(collection(db, 'users'), where('studentId', '==', qVal), limit(1)));
+        if (!snap.empty) {
+          const d = snap.docs[0];
+          const data = d.data();
+          return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
         }
-      } catch (err) {}
+      } catch (e) {}
+    }
 
-      // 7. Resilient in-memory search fallback across users (handles case mismatches, names, trimmed values)
-      const allUsersSnap = await getDocs(query(collection(db, 'users'), limit(300)));
+    // 3. Query by email variations
+    const emailQueries = [lower, raw, raw.toLowerCase()].filter(Boolean);
+    for (const em of Array.from(new Set(emailQueries))) {
+      try {
+        const snap = await getDocs(query(collection(db, 'users'), where('email', '==', em), limit(1)));
+        if (!snap.empty) {
+          const d = snap.docs[0];
+          const data = d.data();
+          return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
+        }
+      } catch (e) {}
+    }
+
+    // 4. In-memory fallback across all users (up to 500) with complete case-insensitive and prefix-insensitive matching
+    try {
+      const allUsersSnap = await getDocs(query(collection(db, 'users'), limit(500)));
       for (const d of allUsersSnap.docs) {
         const u = d.data();
+        const uUid = d.id;
         const uEmail = (u.email || '').trim().toLowerCase();
         const uStudentId = (u.studentId || '').trim().toUpperCase();
-        const uStripped = uStudentId.replace(/^ST[-_\s]?/i, '').replace(/[\s_-]/g, '');
+        const uStripped = uStudentId.replace(/^(ST|ALG)[-_\s#]?/i, '').replace(/[\s_\-#]/g, '');
         const uName = (u.displayName || u.name || '').trim().toLowerCase();
 
-        if (
-          d.id === raw ||
-          (uStudentId && (uStudentId === upper || uStudentId === candidateST)) ||
-          (uStripped && strippedCode && uStripped === strippedCode) ||
-          (uEmail && (uEmail === lower || uEmail === raw.toLowerCase())) ||
-          (uName && uName === lower) ||
-          (lower.length >= 4 && (uEmail.includes(lower) || uName.includes(lower)))
-        ) {
+        // Check UID
+        if (uUid === raw || uUid.toLowerCase() === lower) {
+          return { uid: d.id, displayName: u.displayName || u.name || 'تلميذ', ...u };
+        }
+
+        // Check Student ID
+        if (uStudentId) {
+          if (
+            uStudentId === upper ||
+            uStudentId === cleanCore ||
+            uStudentId === candidateST ||
+            uStudentId === candidateALG ||
+            (cleanCore && uStripped === cleanCore) ||
+            uStudentId.toLowerCase() === lower
+          ) {
+            return { uid: d.id, displayName: u.displayName || u.name || 'تلميذ', ...u };
+          }
+        }
+
+        // Check Email
+        if (uEmail) {
+          if (
+            uEmail === lower ||
+            uEmail === raw.toLowerCase() ||
+            (lower.includes('@') && uEmail.startsWith(lower))
+          ) {
+            return { uid: d.id, displayName: u.displayName || u.name || 'تلميذ', ...u };
+          }
+        }
+
+        // Check Display Name
+        if (uName && (uName === lower || (lower.length >= 3 && uName.includes(lower)))) {
           return { uid: d.id, displayName: u.displayName || u.name || 'تلميذ', ...u };
         }
       }
-
-      return null;
-    } catch (err) {
-      console.error('Error during student lookup:', err);
-      return null;
+    } catch (e) {
+      console.error('In-memory search error:', e);
     }
+
+    return null;
   };
 
   const linkWithTeacher = async () => {
@@ -1469,27 +1476,44 @@ export default function App() {
 
       const groupRef = doc(db, 'groups', activeChatRoom.id);
       const groupSnap = await getDoc(groupRef);
+      let currentMembers: string[] = [];
+      
       if (!groupSnap.exists()) {
-        showNotification('المجموعة غير موجودة', 'error');
-        return;
-      }
-      
-      const groupData = groupSnap.data();
-      const currentMembers: string[] = groupData.members || activeChatRoom.members || [];
-      
-      if (currentMembers.includes(studentUid)) {
-        showNotification(`التلميذ "${studentName}" موجود بالفعل في هذه المجموعة!`, 'info');
-        return;
-      }
-      
-      if (currentMembers.length >= 60) {
-        showNotification('المجموعة ممتلئة! الحد الأقصى هو 60 عضواً.', 'error');
-        return;
-      }
+        // If the group document is not yet created in Firestore, initialize it
+        const initialMembers = activeChatRoom.members && activeChatRoom.members.length > 0 
+          ? activeChatRoom.members 
+          : (user ? [user.uid] : []);
+        currentMembers = initialMembers;
+        if (currentMembers.includes(studentUid)) {
+          showNotification(`التلميذ "${studentName}" موجود بالفعل في هذه المجموعة!`, 'info');
+          return;
+        }
+        await setDoc(groupRef, {
+          name: activeChatRoom.name || 'غرفة دراسية',
+          creatorId: activeChatRoom.creatorId || (user ? user.uid : 'admin'),
+          creatorName: activeChatRoom.creatorName || (user ? user.displayName : 'المشرف') || 'المشرف',
+          creatorRole: activeChatRoom.creatorRole || 'teacher',
+          members: Array.from(new Set([...initialMembers, studentUid])),
+          createdAt: new Date().toISOString()
+        }, { merge: true });
+      } else {
+        const groupData = groupSnap.data();
+        currentMembers = groupData.members || activeChatRoom.members || [];
+        
+        if (currentMembers.includes(studentUid)) {
+          showNotification(`التلميذ "${studentName}" موجود بالفعل في هذه المجموعة!`, 'info');
+          return;
+        }
+        
+        if (currentMembers.length >= 60) {
+          showNotification('المجموعة ممتلئة! الحد الأقصى هو 60 عضواً.', 'error');
+          return;
+        }
 
-      await updateDoc(groupRef, {
-        members: arrayUnion(studentUid)
-      });
+        await updateDoc(groupRef, {
+          members: arrayUnion(studentUid)
+        });
+      }
 
       // Update active chat room members immediately in local state
       const updatedMembers = Array.from(new Set([...currentMembers, studentUid]));
@@ -2198,6 +2222,14 @@ export default function App() {
               setSeenQuestionIds(data.seenQuestionIds || []);
               if (data.seenQuestionsDate === today && Array.isArray(data.seenQuestionIds)) {
                 setDailyAnsweredSet(prev => {
+                  let hasNew = false;
+                  for (const qid of data.seenQuestionIds) {
+                    if (!prev.ids.has(qid)) {
+                      hasNew = true;
+                      break;
+                    }
+                  }
+                  if (!hasNew) return prev;
                   const nextIds = new Set(prev.ids);
                   data.seenQuestionIds.forEach((qid: string) => nextIds.add(qid));
                   return { ids: nextIds, texts: prev.texts };
@@ -2616,7 +2648,17 @@ export default function App() {
       };
       updateProgress();
     }
-  }, [totalPoints, user, dataLoaded, selectedLevelId, selectedTrackId, selectedYearId, dailyStudySeconds, lastDailyRewardDate, lastGiftDate, isPremium]);
+  }, [totalPoints, user, dataLoaded, selectedLevelId, selectedTrackId, selectedYearId, lastDailyRewardDate, lastGiftDate, isPremium]);
+
+  // Periodically persist study timer every 30 seconds to avoid Firestore flooding every second
+  useEffect(() => {
+    if (!user || !dataLoaded || dailyStudySeconds === 0) return;
+    const timer = setTimeout(() => {
+      const userDoc = doc(db, 'users', user.uid);
+      updateDoc(userDoc, { dailyStudySeconds }).catch(() => {});
+    }, 30000);
+    return () => clearTimeout(timer);
+  }, [dailyStudySeconds, user, dataLoaded]);
 
   // Daily coin reset logic
   useEffect(() => {
@@ -3070,8 +3112,17 @@ export default function App() {
     return `${selectedLevelId}-${selectedYearId}-${selectedSubject?.id}`;
   }, [selectedLevelId, selectedYearId, selectedSubject]);
 
+  const quizSessionKey = useMemo(() => {
+    if (isChallengeMode && activeChallenge?.id) return `challenge-${activeChallenge.id}`;
+    if (isContestQuiz) return `contest-${selectedLevelId || 'all'}-${contestRound}`;
+    const subSlug = selectedSubject ? getSubjectSlug(selectedSubject.name || selectedSubject.id) : 'none';
+    return `${selectedLevelId}-${selectedYearId}-${selectedTrackId || 'none'}-${subSlug}-s${selectedSemester || 'all'}-${selectedDifficulty || 'all'}`;
+  }, [isChallengeMode, activeChallenge?.id, isContestQuiz, selectedLevelId, contestRound, selectedSubject, selectedYearId, selectedTrackId, selectedSemester, selectedDifficulty]);
+
+  const [quizSessionVersion, setQuizSessionVersion] = useState(0);
+
   const questions = useMemo(() => {
-    if (isChallengeMode && activeChallenge?.questions) {
+    if (isChallengeMode && activeChallenge?.questions && activeChallenge.questions.length > 0) {
       return shuffleAndBalanceQuestions(activeChallenge.questions);
     }
     if (isContestQuiz) {
@@ -3084,29 +3135,23 @@ export default function App() {
         ? [...dynamicBatch, ...contest50.slice(dynamicBatch.length, 50)]
         : contest50);
     }
-    // Match custom admin questions from Question Bank with strict level and year enforcement
+
+    const currentSubSlug = selectedSubject ? getSubjectSlug(selectedSubject.name || selectedSubject.id) : '';
+
+    // Match custom admin questions from Question Bank with strict level, year, and subject enforcement
     const isSubjectMatch = (q: CustomQuestion) => {
-      if (!selectedSubject) return true;
-      if (!q.subjectId || q.subjectId === 'all') return true;
-      if (q.subjectId === selectedSubject.id) return true;
-      if (q.subjectName && selectedSubject.name) {
-        const qSub = q.subjectName.trim().toLowerCase();
-        const selSub = selectedSubject.name.trim().toLowerCase();
-        if (qSub === selSub || qSub.includes(selSub) || selSub.includes(qSub)) return true;
-      }
-      return false;
+      if (!selectedSubject || !currentSubSlug) return false;
+      const qSlug = getSubjectSlug(q.subjectName || q.subjectId || '');
+      return qSlug === currentSubSlug;
     };
 
     const isLevelYearMatch = (q: CustomQuestion) => {
-      // Must match level if specified
       if (q.levelId && q.levelId !== 'all' && selectedLevelId && q.levelId !== selectedLevelId) {
         return false;
       }
-      // Must match year if specified
       if (q.yearId && q.yearId !== 'all' && selectedYearId && q.yearId !== selectedYearId) {
         return false;
       }
-      // Must match track if specified
       if (q.trackId && q.trackId !== 'all' && selectedTrackId && q.trackId !== selectedTrackId && (!selectedTrack || q.trackId !== selectedTrack.id)) {
         return false;
       }
@@ -3127,19 +3172,34 @@ export default function App() {
       return !exactCustomMatches.some(m => m.id === q.id || m.text.trim() === q.text.trim());
     });
 
-    // Strictly enforce level/year match: do not leak questions from other grades or stages
     const customMatches = [...exactCustomMatches, ...yearSubjectCustomMatches];
 
-    // 2. Try variety of keys from most specific to least specific
-    const staticBatch = QUESTIONS[key] || QUESTIONS[semesterKey] || QUESTIONS[baseKey] || QUESTIONS[yearLevelKey] || [];
+    // Static questions strictly for the current subject slug
+    const specificStaticKeys: string[] = [];
+    if (selectedLevelId && selectedYearId && currentSubSlug) {
+      if (selectedTrackId) specificStaticKeys.push(`${selectedLevelId}-${selectedYearId}-${selectedTrackId}-${currentSubSlug}`);
+      specificStaticKeys.push(`${selectedLevelId}-${selectedYearId}-${currentSubSlug}`);
+    }
+    if (selectedLevelId && currentSubSlug) {
+      specificStaticKeys.push(`${selectedLevelId}-${currentSubSlug}`);
+    }
+
+    let staticBatch: Question[] = [];
+    for (const sk of specificStaticKeys) {
+      if (QUESTIONS[sk] && QUESTIONS[sk].length > 0) {
+        staticBatch = [...staticBatch, ...QUESTIONS[sk]];
+      }
+    }
+
+    // Dynamic AI questions generated for this exact key
     const dynamicBatch = dynamicQuestions[key] || [];
-    
-    // 3. Lightning Instant Fallback tailored to the student's exact grade and educational level
+
+    // Fallback questions strictly for this subject
     const combinedInitial = [...customMatches, ...staticBatch, ...dynamicBatch];
-    const fallbackInstant = (selectedSubject && combinedInitial.length < 15)
+    const fallbackInstant = (selectedSubject && combinedInitial.length < 25)
       ? getFallbackQuestions(
           selectedSubject.name, 
-          20, 
+          25, 
           selectedDifficulty || 'medium',
           selectedLevelId,
           selectedYearId,
@@ -3149,7 +3209,7 @@ export default function App() {
 
     const rawCombined = [...combinedInitial, ...fallbackInstant];
     
-    // Deduplicate by normalized question text to ensure NO question repeats ever in the active test!
+    // Deduplicate by normalized question text
     const seenTexts = new Set<string>();
     const unique: Question[] = [];
     for (const q of rawCombined) {
@@ -3160,8 +3220,6 @@ export default function App() {
       }
     }
 
-    // Direct compliance with user requirement:
-    // "تأكد ان الاسئلة ا تكرر عندما يدر التلميذ اليوم سىال لايظهر له مرة أخرى"
     // Filter out questions answered by the student TODAY:
     const unAnsweredToday = unique.filter(q => {
       const isSeenId = dailyAnsweredSet.ids.has(q.id);
@@ -3169,15 +3227,9 @@ export default function App() {
       return !isSeenId && !isSeenText;
     });
 
-    // If there are questions the student has not yet answered today, show ONLY them!
-    // If all questions have been solved today, fall back gracefully to unique so the student is never blocked.
-    const candidateQuestions = unAnsweredToday.length > 0 ? unAnsweredToday : unique;
-    
-    // Direct compliance with user requirement:
-    // "وتأكد ان ق الاسئلة عند اختيار خيار في الاجابة مثلا الان الاجابة الصحيحة ١ المرة ٢ يكون ٣ مزيج لاتركز على خيار واحد فقط"
-    // Dynamically randomize and balance option positions so consecutive questions do not concentrate on the same index!
+    const candidateQuestions = unAnsweredToday.length >= 5 ? unAnsweredToday : unique;
     return shuffleAndBalanceQuestions(candidateQuestions);
-  }, [key, semesterKey, baseKey, yearLevelKey, dynamicQuestions, selectedSubject, isChallengeMode, activeChallenge, customQuestionsList, selectedLevelId, selectedYearId, selectedTrackId, selectedTrack, selectedSemester, selectedDifficulty, isContestQuiz, dailyAnsweredSet]);
+  }, [quizSessionKey, quizSessionVersion, customQuestionsList.length]);
 
   const currentQuestion = questions[Math.min(currentQuestionIndex, Math.max(0, questions.length - 1))] || questions[0];
 
@@ -3502,6 +3554,7 @@ export default function App() {
       setView('subjects');
       return;
     }
+    setQuizSessionVersion(v => v + 1);
     setCurrentQuestionIndex(0);
     setScore(0);
     setUserAnswers([]);
@@ -3518,6 +3571,7 @@ export default function App() {
       return;
     }
     setIsLoadingQuestions(true);
+    setQuizSessionVersion(v => v + 1);
     setCurrentQuestionIndex(0);
     setScore(0);
     setUserAnswers([]);
@@ -3552,6 +3606,7 @@ export default function App() {
 
   const handleDifficultySelect = (difficulty: Difficulty) => {
     setSelectedDifficulty(difficulty);
+    setQuizSessionVersion(v => v + 1);
     setCurrentQuestionIndex(0);
     setScore(0);
     setUserAnswers([]);
