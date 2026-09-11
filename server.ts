@@ -18,7 +18,8 @@ function getGeminiClient(): GoogleGenAI | null {
 
 // Recommended models prioritizing standard text generation models that are responsive and fast
 const CANDIDATE_MODELS = [
-  "gemini-3.6-flash",
+  "gemini-3.1-flash-lite",
+  "gemini-3.8-flash",
   "gemini-flash-latest"
 ];
 
@@ -61,7 +62,7 @@ async function generateWithModelFallback(
           config
         });
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error(`Timeout after 12000ms on model ${model}`)), 12000)
+          setTimeout(() => reject(new Error(`Timeout after 25000ms on model ${model}`)), 25000)
         );
 
         const response: any = await Promise.race([genPromise, timeoutPromise]);
@@ -74,6 +75,7 @@ async function generateWithModelFallback(
         const errMsg = err?.message || String(err);
         const isQuota = errMsg.includes("429") || errMsg.includes("RESOURCE_EXHAUSTED") || errMsg.includes("quota");
         const is503 = errMsg.includes("503") || errMsg.includes("UNAVAILABLE") || errMsg.includes("high demand");
+        const isTimeout = errMsg.toLowerCase().includes("timeout");
 
         if (isQuota) {
           lastQuotaErrorTime = Date.now();
@@ -86,6 +88,9 @@ async function generateWithModelFallback(
             await new Promise(resolve => setTimeout(resolve, 800));
             continue;
           }
+        } else if (isTimeout) {
+          console.warn(`[Gemini API] Model ${model} timed out (${errMsg}), trying next candidate model...`);
+          break; // switch immediately to next candidate model
         } else {
           console.warn(`[Gemini API] Model ${model} error: ${errMsg}`);
           break;
@@ -581,6 +586,74 @@ ${contextInfo ? `بيانات التلميذ: ${contextInfo}` : ''}
       return res.status(200).json({ 
         success: true, 
         reply: "أهلاً بك يا بطل! أنا جاهز لمساعدتك في أي سؤال تعليمي في الرياضيات، العلوم، الفيزياء، اللغات أو المواد الأدبية وفق المنهاج الجزائري. تفضل بطرح سؤالك وسأشرحه لك خطوة بخطوة." 
+      });
+    }
+  });
+
+  // 9. Generic /api/gemini endpoint for direct prompt and question generation
+  app.post("/api/gemini", async (req, res) => {
+    try {
+      const { prompt, selectedSubject } = req.body;
+      const cleanPrompt = (prompt || "").trim() || (selectedSubject ? `أنشئ سؤالاً واحداً جديداً مع خياراته لمادة (${selectedSubject}) فقط بصيغة JSON.` : "");
+      
+      if (!cleanPrompt) {
+        return res.status(400).json({ error: "Prompt or selectedSubject is required" });
+      }
+
+      const ai = getGeminiClient();
+      if (!ai) {
+        // Fallback response if GEMINI_API_KEY is not configured
+        const fallbackSubject = selectedSubject || "الرياضيات";
+        return res.json({
+          question: `سؤال تدريبي لمادة ${fallbackSubject}: ما هي الخطوة الأساسية لحل المسائل المنهجية؟`,
+          options: [
+            "تحديد المعطيات والمطلوب بدقة",
+            "البدء بالحساب عشوائياً",
+            "إهمال الوحدات الحسابية",
+            "تخطي قراءة المسألة"
+          ],
+          correctAnswer: 0,
+          explanation: "تحديد المعطيات والمطلوب بدقة هو المفتاح الأول لحل أي مسألة علمية أو رياضية بنجاح."
+        });
+      }
+
+      const systemPrompt = `أنت أستاذ ومفتش تعليمي جزائري.
+قم بالإجابة على الطلب التالي حصراً بصيغة JSON نظيفة بدون أي شروحات خارج الكود:
+${cleanPrompt}
+
+تأكد من أن الكائن يتضمن الحقول التالية:
+{
+  "question": "نص السؤال التعليمي",
+  "options": ["الخيار الأول", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع"],
+  "correctAnswer": 0,
+  "explanation": "شرح مبسط ومقنع للإجابة الصحيحة"
+}`;
+
+      const response = await generateWithModelFallback(ai, systemPrompt, {
+        temperature: 0.7,
+        maxOutputTokens: 600,
+        responseMimeType: "application/json"
+      });
+
+      const parsed = parseJSONContent(response.text || "");
+      if (parsed) {
+        return res.json(parsed);
+      }
+
+      return res.json({
+        question: `سؤال في ${selectedSubject || 'المادة'}: اختر الإجابة الأصح وفق المنهاج`,
+        options: ["الخيار الأول", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع"],
+        correctAnswer: 0,
+        explanation: "الإجابة الصحيحة مبنية على المفاهيم المعتمدة في المناهج الجزائرية."
+      });
+    } catch (err: any) {
+      console.warn("API /api/gemini error:", err?.message || err);
+      const sub = req.body?.selectedSubject || "الرياضيات";
+      return res.json({
+        question: `سؤال تدريبي في ${sub}: ما هي القاعدة الصحيحة؟`,
+        options: ["القاعدة الأساسية الأولى", "افتراض غير مؤكد", "خيار خاطئ", "قاعدة ملغاة"],
+        correctAnswer: 0,
+        explanation: "القواعد الأساسية المعتمدة هي المعيار في الحل."
       });
     }
   });

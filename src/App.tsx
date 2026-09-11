@@ -284,6 +284,7 @@ export default function App() {
   const [isJoiningGroup, setIsJoiningGroup] = useState(false);
   const [teacherSearchStudentCode, setTeacherSearchStudentCode] = useState('');
   const [isStartingStudentChat, setIsStartingStudentChat] = useState(false);
+  const [isAddingStudentToGroup, setIsAddingStudentToGroup] = useState(false);
   const [showGroupInfoModal, setShowGroupInfoModal] = useState(false);
   const [deleteConfirmRoom, setDeleteConfirmRoom] = useState<{ id: string; name: string; type?: string } | null>(null);
   const [isDeletingRoom, setIsDeletingRoom] = useState(false);
@@ -997,18 +998,145 @@ export default function App() {
   };
 
 
+  const lookupUserOrStudent = async (inputStr: string): Promise<{
+    uid: string;
+    displayName: string;
+    email?: string;
+    studentId?: string;
+    selectedAvatar?: string;
+    role?: string;
+  } | null> => {
+    if (!inputStr || !inputStr.trim()) return null;
+    const raw = inputStr.trim();
+    const lower = raw.toLowerCase();
+    const upper = raw.toUpperCase();
+    
+    // Clean code variations: strip out 'ST-', spaces, hashes, underscores
+    const strippedCode = upper.replace(/^ST[-_\s]?/i, '').replace(/[\s_-]/g, '');
+    const candidateST = strippedCode ? `ST-${strippedCode}` : '';
+
+    try {
+      // 1. Try studentId exact match
+      let snap = await getDocs(query(collection(db, 'users'), where('studentId', '==', upper), limit(1)));
+      if (!snap.empty) {
+        const d = snap.docs[0];
+        const data = d.data();
+        return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
+      }
+
+      // 2. Try studentId with ST- prefix if needed
+      if (candidateST) {
+        snap = await getDocs(query(collection(db, 'users'), where('studentId', '==', candidateST), limit(1)));
+        if (!snap.empty) {
+          const d = snap.docs[0];
+          const data = d.data();
+          return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
+        }
+
+        // 3. Try studentId without ST- prefix
+        snap = await getDocs(query(collection(db, 'users'), where('studentId', '==', strippedCode), limit(1)));
+        if (!snap.empty) {
+          const d = snap.docs[0];
+          const data = d.data();
+          return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
+        }
+      }
+
+      // 4. Try email in lowercase
+      snap = await getDocs(query(collection(db, 'users'), where('email', '==', lower), limit(1)));
+      if (!snap.empty) {
+        const d = snap.docs[0];
+        const data = d.data();
+        return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
+      }
+
+      // 5. Try email exact raw
+      if (lower !== raw) {
+        snap = await getDocs(query(collection(db, 'users'), where('email', '==', raw), limit(1)));
+        if (!snap.empty) {
+          const d = snap.docs[0];
+          const data = d.data();
+          return { uid: d.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
+        }
+      }
+
+      // 6. Try direct user doc by UID
+      try {
+        const directDoc = await getDoc(doc(db, 'users', raw));
+        if (directDoc.exists()) {
+          const data = directDoc.data();
+          return { uid: directDoc.id, displayName: data.displayName || data.name || 'تلميذ', ...data };
+        }
+      } catch (err) {}
+
+      // 7. Resilient in-memory search fallback across users (handles case mismatches, names, trimmed values)
+      const allUsersSnap = await getDocs(query(collection(db, 'users'), limit(300)));
+      for (const d of allUsersSnap.docs) {
+        const u = d.data();
+        const uEmail = (u.email || '').trim().toLowerCase();
+        const uStudentId = (u.studentId || '').trim().toUpperCase();
+        const uStripped = uStudentId.replace(/^ST[-_\s]?/i, '').replace(/[\s_-]/g, '');
+        const uName = (u.displayName || u.name || '').trim().toLowerCase();
+
+        if (
+          d.id === raw ||
+          (uStudentId && (uStudentId === upper || uStudentId === candidateST)) ||
+          (uStripped && strippedCode && uStripped === strippedCode) ||
+          (uEmail && (uEmail === lower || uEmail === raw.toLowerCase())) ||
+          (uName && uName === lower) ||
+          (lower.length >= 4 && (uEmail.includes(lower) || uName.includes(lower)))
+        ) {
+          return { uid: d.id, displayName: u.displayName || u.name || 'تلميذ', ...u };
+        }
+      }
+
+      return null;
+    } catch (err) {
+      console.error('Error during student lookup:', err);
+      return null;
+    }
+  };
+
   const linkWithTeacher = async () => {
     if (!user || !teacherSearchCode) return;
     setIsSearchingTeacher(true);
     try {
-      const q = query(collection(db, 'users'), where('teacherCode', '==', teacherSearchCode.trim()), limit(1));
-      const snap = await getDocs(q);
+      const rawCode = teacherSearchCode.trim();
+      const upperCode = rawCode.toUpperCase();
+      const strippedTeacher = upperCode.replace(/^TR[-_\s]?/i, '').replace(/[\s_-]/g, '');
+      const withTR = strippedTeacher ? `TR-${strippedTeacher}` : '';
+
+      let teacherDoc: any = null;
+      let snap = await getDocs(query(collection(db, 'users'), where('teacherCode', '==', upperCode), limit(1)));
+      if (snap.empty && withTR) {
+        snap = await getDocs(query(collection(db, 'users'), where('teacherCode', '==', withTR), limit(1)));
+      }
+      if (snap.empty && strippedTeacher) {
+        snap = await getDocs(query(collection(db, 'users'), where('teacherCode', '==', strippedTeacher), limit(1)));
+      }
       if (snap.empty) {
-        showNotification('الكود غير صحيح أو الأستاذ غير موجود', 'error');
+        snap = await getDocs(query(collection(db, 'users'), where('email', '==', rawCode.toLowerCase()), limit(1)));
+      }
+      
+      if (!snap.empty) {
+        teacherDoc = snap.docs[0];
+      } else {
+        // Fallback search teachers
+        const allTeachersSnap = await getDocs(query(collection(db, 'users'), where('role', '==', 'teacher'), limit(50)));
+        teacherDoc = allTeachersSnap.docs.find(d => {
+          const t = d.data();
+          const tCode = (t.teacherCode || '').trim().toUpperCase();
+          const tEmail = (t.email || '').trim().toLowerCase();
+          return tCode === upperCode || tCode === withTR || tEmail === rawCode.toLowerCase();
+        });
+      }
+
+      if (!teacherDoc) {
+        showNotification('الكود غير صحيح أو الأستاذ غير موجود. تأكد من كود الأستاذ (مثال: TR-XXXX) أو بريده', 'error');
         return;
       }
-      const teacher = snap.docs[0].data();
-      const teacherId = snap.docs[0].id;
+      const teacher = teacherDoc.data();
+      const teacherId = teacherDoc.id;
       
       // Create or get private chat room
       const chatId = [user.uid, teacherId].sort().join('_');
@@ -1026,7 +1154,21 @@ export default function App() {
         });
       }
       
-      showNotification(`تم الربط مع الأستاذ: ${teacher.displayName}`, 'success');
+      const newRoom = {
+        id: chatId,
+        type: 'private',
+        participants: [user.uid, teacherId],
+        participantNames: {
+          [user.uid]: user.displayName || 'طالب',
+          [teacherId]: teacher.displayName || 'الأستاذ'
+        }
+      };
+      setPrivateRooms((prev: any[]) => {
+        if (prev.some(r => r.id === chatId)) return prev;
+        return [newRoom, ...prev];
+      });
+      setActiveChatRoom(newRoom);
+      showNotification(`تم الربط مع الأستاذ: ${teacher.displayName} بنجاح! 👨‍🏫`, 'success');
       setTeacherSearchCode('');
     } catch (e: any) {
       handleFirestoreError(e, OperationType.WRITE, 'private_chats');
@@ -1044,56 +1186,19 @@ export default function App() {
     }
     const cleanQuery = studentQuery.trim();
     if (!cleanQuery) {
-      showNotification('يرجى إدخال معرّف التلميذ (ID) أو كود التلميذ (ST-XXXX) أو بريده الإلكتروني', 'error');
+      showNotification('يرجى إدخال رمز التلميذ (ST-XXXX) أو بريده الإلكتروني أو معرّفه', 'error');
       return;
     }
     setIsStartingStudentChat(true);
     try {
-      // Look up by studentId, uid, or email
-      let studentSnap = await getDocs(query(collection(db, 'users'), where('studentId', '==', cleanQuery.toUpperCase()), limit(1)));
-      if (studentSnap.empty) {
-        studentSnap = await getDocs(query(collection(db, 'users'), where('email', '==', cleanQuery.toLowerCase()), limit(1)));
-      }
-      if (studentSnap.empty) {
-        // try direct doc id
-        const directDoc = await getDoc(doc(db, 'users', cleanQuery));
-        if (directDoc.exists()) {
-          const sData = directDoc.data();
-          const studentId = directDoc.id;
-          const chatId = [user.uid, studentId].sort().join('_');
-          const chatRef = doc(db, 'private_chats', chatId);
-          await setDoc(chatRef, {
-            participants: [user.uid, studentId],
-            participantNames: {
-              [user.uid]: user.displayName || currentUserData?.displayName || 'الأستاذ',
-              [studentId]: sData.displayName || sData.name || 'التلميذ'
-            },
-            createdAt: new Date().toISOString()
-          }, { merge: true });
-          const newRoom = {
-            id: chatId,
-            type: 'private',
-            participants: [user.uid, studentId],
-            participantNames: {
-              [user.uid]: user.displayName || currentUserData?.displayName || 'الأستاذ',
-              [studentId]: sData.displayName || sData.name || 'التلميذ'
-            }
-          };
-          setActiveChatRoom(newRoom);
-          showNotification(`تم بدء المحادثة مع التلميذ: ${sData.displayName || sData.name || studentId}`, 'success');
-          setTeacherSearchStudentCode('');
-          return;
-        }
-      }
-
-      if (studentSnap.empty) {
-        showNotification('لم يتم العثور على تلميذ بهذا المعرف أو الكود', 'error');
+      const student = await lookupUserOrStudent(cleanQuery);
+      if (!student) {
+        showNotification('لم يتم العثور على تلميذ بهذا الكود أو البريد الإلكتروني. يرجى التأكد من الرمز (مثال: ST-ABCD) أو البريد.', 'error');
         return;
       }
 
-      const studentDoc = studentSnap.docs[0];
-      const sData = studentDoc.data();
-      const studentId = studentDoc.id;
+      const studentId = student.uid;
+      const sData = student;
       
       const chatId = [user.uid, studentId].sort().join('_');
       const chatRef = doc(db, 'private_chats', chatId);
@@ -1101,7 +1206,7 @@ export default function App() {
         participants: [user.uid, studentId],
         participantNames: {
           [user.uid]: user.displayName || currentUserData?.displayName || 'الأستاذ',
-          [studentId]: sData.displayName || sData.name || 'التلميذ'
+          [studentId]: sData.displayName || 'التلميذ'
         },
         createdAt: new Date().toISOString()
       }, { merge: true });
@@ -1112,13 +1217,20 @@ export default function App() {
         participants: [user.uid, studentId],
         participantNames: {
           [user.uid]: user.displayName || currentUserData?.displayName || 'الأستاذ',
-          [studentId]: sData.displayName || sData.name || 'التلميذ'
+          [studentId]: sData.displayName || 'التلميذ'
         }
       };
+
+      setPrivateRooms((prev: any[]) => {
+        if (prev.some(r => r.id === chatId)) return prev;
+        return [newRoom, ...prev];
+      });
+
       setActiveChatRoom(newRoom);
-      showNotification(`تم بدء المحادثة بنجاح مع التلميذ: ${sData.displayName || sData.name || 'التلميذ'}`, 'success');
+      showNotification(`تم بدء المحادثة بنجاح مع التلميذ: ${sData.displayName || 'التلميذ'} 🎉`, 'success');
       setTeacherSearchStudentCode('');
     } catch (e: any) {
+      console.error('Error starting student chat:', e);
       handleFirestoreError(e, OperationType.WRITE, 'private_chats');
     } finally {
       setIsStartingStudentChat(false);
@@ -1344,18 +1456,16 @@ export default function App() {
 
   const addStudentToGroup = async (studentCode: string) => {
     if (!studentCode || !studentCode.trim() || !activeChatRoom) return;
-    const cleanCode = studentCode.trim().toUpperCase();
+    setIsAddingStudentToGroup(true);
     try {
-      const q = query(collection(db, 'users'), where('studentId', '==', cleanCode), limit(1));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        showNotification('الكود غير صحيح أو لم يتم العثور على تلميذ بهذا المعرف', 'error');
+      const student = await lookupUserOrStudent(studentCode);
+      if (!student) {
+        showNotification('لم يتم العثور على تلميذ بهذا الكود أو البريد الإلكتروني. يرجى التأكد من الرمز (مثال: ST-ABCD) أو البريد الإلكتروني.', 'error');
         return;
       }
-      const studentDoc = snap.docs[0];
-      const studentData = studentDoc.data();
-      const studentUid = studentDoc.id;
-      const studentName = studentData.displayName || 'تلميذ';
+
+      const studentUid = student.uid;
+      const studentName = student.displayName || 'تلميذ';
 
       const groupRef = doc(db, 'groups', activeChatRoom.id);
       const groupSnap = await getDoc(groupRef);
@@ -1365,15 +1475,15 @@ export default function App() {
       }
       
       const groupData = groupSnap.data();
-      const currentMembers = groupData.members || [];
+      const currentMembers: string[] = groupData.members || activeChatRoom.members || [];
       
       if (currentMembers.includes(studentUid)) {
         showNotification(`التلميذ "${studentName}" موجود بالفعل في هذه المجموعة!`, 'info');
         return;
       }
       
-      if (currentMembers.length >= 50) {
-        showNotification('المجموعة ممتلئة! الحد الأقصى هو 50 عضواً.', 'error');
+      if (currentMembers.length >= 60) {
+        showNotification('المجموعة ممتلئة! الحد الأقصى هو 60 عضواً.', 'error');
         return;
       }
 
@@ -1381,9 +1491,44 @@ export default function App() {
         members: arrayUnion(studentUid)
       });
 
-      showNotification(`تمت إضافة "${studentName}" بنجاح إلى المجموعة!`, 'success');
+      // Update active chat room members immediately in local state
+      const updatedMembers = Array.from(new Set([...currentMembers, studentUid]));
+      setActiveChatRoom((prev: any) => prev ? {
+        ...prev,
+        members: updatedMembers
+      } : prev);
+
+      // Immediately append to groupMembersDetails so the member appears in the list instantly
+      setGroupMembersDetails((prev: any[]) => {
+        if (prev.some(m => m.uid === studentUid || m.id === studentUid)) return prev;
+        return [...prev, {
+          uid: studentUid,
+          id: studentUid,
+          displayName: student.displayName || studentName,
+          email: student.email || '',
+          studentId: student.studentId || null,
+          selectedAvatar: student.selectedAvatar || null,
+          role: student.role || 'student'
+        }];
+      });
+
+      // Update groupRooms state
+      setGroupRooms((prev: any[]) => prev.map(r => {
+        if (r.id === activeChatRoom.id) {
+          return {
+            ...r,
+            members: updatedMembers
+          };
+        }
+        return r;
+      }));
+
+      showNotification(`تمت إضافة التلميذ "${studentName}" بنجاح إلى الغرفة! 🎉`, 'success');
     } catch (e: any) {
+      console.error('Error adding student to group:', e);
       handleFirestoreError(e, OperationType.WRITE, 'groups');
+    } finally {
+      setIsAddingStudentToGroup(false);
     }
   };
 
@@ -1494,7 +1639,7 @@ export default function App() {
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
+        const timeoutId = setTimeout(() => controller.abort(), 25000);
         const res = await fetch('/api/chat-tutor', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1539,6 +1684,26 @@ export default function App() {
     }
 
     if (!user) return;
+
+    // Optimistic local dispatch for zero latency feel
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+    const optimisticMsg: any = {
+      id: tempId,
+      senderId: user.uid,
+      senderName: user.displayName || currentUserData?.displayName || 'مستخدم',
+      senderAvatar: selectedAvatar || currentUserData?.selectedAvatar || null,
+      senderRole: currentUserData?.role || 'student',
+      senderStudentId: studentId || currentUserData?.studentId || null,
+      text: cleanText,
+      imageUrl: imageUrl || null,
+      timestamp: new Date().toISOString(),
+      roomId,
+      reactions: {}
+    };
+
+    if (activeChatRoom?.id === roomId) {
+      setChatMessages(prev => [...prev, optimisticMsg]);
+    }
 
     try {
       if (roomId === 'general_study_lounge') {
@@ -1623,6 +1788,12 @@ export default function App() {
       await updateDoc(groupRef, {
         members: updatedMembers
       });
+      setActiveChatRoom((prev: any) => prev ? {
+        ...prev,
+        members: updatedMembers
+      } : prev);
+      setGroupMembersDetails((prev: any[]) => prev.filter(m => m.uid !== memberUid && m.id !== memberUid));
+      setGroupRooms((prev: any[]) => prev.map(r => r.id === activeChatRoom.id ? { ...r, members: updatedMembers } : r));
       showNotification(`تمت إزالة ${memberName} من المجموعة بنجاح`, 'info');
     } catch (e: any) {
       handleFirestoreError(e, OperationType.WRITE, 'groups');
@@ -1717,7 +1888,19 @@ export default function App() {
     
     const q = query(collection(db, path), orderBy('timestamp', 'asc'));
     const unsubscribe = onSnapshot(q, (snap) => {
-      setChatMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const serverMsgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setChatMessages(prev => {
+        // Keep pending optimistic messages that have not yet arrived in serverMsgs
+        const pendingOptimistic = prev.filter((p: any) => 
+          p.id?.toString().startsWith('temp-') &&
+          !serverMsgs.some((s: any) => 
+            s.senderId === p.senderId && 
+            s.text === p.text && 
+            s.imageUrl === p.imageUrl
+          )
+        );
+        return [...serverMsgs, ...pendingOptimistic];
+      });
     }, (err) => {
       console.warn("Chat messages listener notice:", err);
     });
@@ -5438,16 +5621,16 @@ export default function App() {
                     {/* Teacher-only creation & student chat tools */}
                     {currentUserData?.role === 'teacher' || isAdminUser ? (
                       <div className="space-y-2.5">
-                        {/* Start direct chat with student by code/ID */}
+                        {/* Start direct chat with student by code/ID/email */}
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between text-[10px] font-black text-slate-500">
-                            <span>بدء محادثة مع تلميذ (كود / معرّف)</span>
+                            <span>بدء محادثة مع تلميذ (كود / بريد)</span>
                             <UserPlus size={12} className="text-blue-600" />
                           </div>
                           <div className="flex gap-1.5">
                             <input 
                               type="text"
-                              placeholder="كود التلميذ (ST-XXXX) أو المعرف..."
+                              placeholder="كود التلميذ (ST-XXXX) أو بريده..."
                               value={teacherSearchStudentCode}
                               onChange={(e) => setTeacherSearchStudentCode(e.target.value)}
                               onKeyDown={(e) => {
@@ -5523,6 +5706,28 @@ export default function App() {
                         <div className="p-2 bg-amber-50/80 border border-amber-200/70 rounded-xl text-[10px] font-black text-amber-800 flex items-center gap-1.5">
                           <span>👨‍🏫</span>
                           <span>الدردشة والغرف ينشئها الأستاذ فقط</span>
+                        </div>
+
+                        {/* Student Code Display Card */}
+                        <div className="p-2.5 bg-emerald-50 rounded-xl border border-emerald-100 flex items-center justify-between">
+                          <div>
+                            <p className="text-[9px] font-black text-emerald-600 uppercase">كودك الخاص كتلميذ</p>
+                            <p className="text-xs font-black text-emerald-950 font-mono">{studentId || currentUserData?.studentId || 'جاري التوليد...'}</p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const code = studentId || currentUserData?.studentId || '';
+                              if (code) {
+                                navigator.clipboard.writeText(code);
+                                showNotification(`تم نسخ كود التلميذ: ${code} 📋 أعطه لأستاذك لإضافتك`, 'success');
+                              }
+                            }}
+                            className="p-1.5 bg-white text-emerald-600 rounded-lg hover:bg-emerald-100 transition-colors border border-emerald-200 flex items-center gap-1 text-[10px] font-black"
+                            title="نسخ كود التلميذ"
+                          >
+                            <Copy size={12} />
+                            <span>نسخ</span>
+                          </button>
                         </div>
 
                         {/* Join Group with Link or ID */}
@@ -5909,6 +6114,11 @@ export default function App() {
                           </div>
                           <button
                             onClick={() => {
+                              if (!user) {
+                                showNotification('يرجى تسجيل الدخول أولاً للانضمام للمكالمة الدراسية 🎓', 'info');
+                                setView('auth');
+                                return;
+                              }
                               setActiveCallRoom({
                                 roomId: activeChatRoom.id,
                                 roomName: activeChatRoom.type === 'group' ? activeChatRoom.name : 'مكالمة مباشرة',
@@ -10166,7 +10376,7 @@ export default function App() {
               <div className="p-4 bg-blue-50/60 border border-blue-100 rounded-2xl space-y-2">
                 <label className="text-xs font-black text-blue-900 block flex items-center gap-1.5">
                   <UserPlus size={14} className="text-blue-600" />
-                  <span>إضافة عضو جديد بكود التلميذ (ST-XXXX):</span>
+                  <span>إضافة عضو جديد بكود التلميذ (ST-XXXX) أو بريده الإلكتروني:</span>
                 </label>
                 <form
                   onSubmit={async (e) => {
@@ -10174,7 +10384,7 @@ export default function App() {
                     const form = e.target as HTMLFormElement;
                     const input = form.querySelector('input') as HTMLInputElement;
                     const studentCode = input.value;
-                    if (!studentCode || !studentCode.trim()) return;
+                    if (!studentCode || !studentCode.trim() || isAddingStudentToGroup) return;
                     await addStudentToGroup(studentCode);
                     input.value = '';
                   }}
@@ -10182,14 +10392,23 @@ export default function App() {
                 >
                   <input
                     type="text"
-                    placeholder="مثال: ST-ABCD"
-                    className="flex-1 p-2.5 bg-white border border-blue-200 rounded-xl font-mono text-xs font-black text-center uppercase outline-none focus:ring-2 focus:ring-blue-500/20"
+                    disabled={isAddingStudentToGroup}
+                    placeholder="مثال: ST-ABCD أو بريد التلميذ (name@gmail.com)"
+                    className="flex-1 p-2.5 bg-white border border-blue-200 rounded-xl font-medium text-xs font-black text-center outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-60"
                   />
                   <button
                     type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-black text-xs active:scale-95 transition-all shadow-md shadow-blue-100"
+                    disabled={isAddingStudentToGroup}
+                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl font-black text-xs active:scale-95 transition-all shadow-md shadow-blue-100 flex items-center gap-1.5 shrink-0"
                   >
-                    إضافة
+                    {isAddingStudentToGroup ? (
+                      <>
+                        <Loader2 size={13} className="animate-spin" />
+                        <span>جاري الإضافة...</span>
+                      </>
+                    ) : (
+                      <span>إضافة</span>
+                    )}
                   </button>
                 </form>
               </div>

@@ -12,9 +12,9 @@ const contestQuestionsCache = new Map<string, Question[]>();
 const lessonIndexCache = new Map<string, { title: string; description: string }[]>();
 
 /**
- * Fast fetch wrapper with strict timeout to prevent any network hanging
+ * Fast fetch wrapper with reasonable timeout to prevent network hanging while allowing LLM responses
  */
-async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 3500): Promise<Response> {
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = 15000): Promise<Response> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -122,7 +122,7 @@ export async function generateQuestions(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level, year, subject: normalizedSubject, difficulty, track, count, semester })
-    }, 4000);
+    }, 15000);
 
     if (res.ok) {
       const data = await res.json();
@@ -161,7 +161,7 @@ export async function generateContestQuestions(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level, round, count, isAcademic })
-    }, 3500);
+    }, 15000);
 
     if (res.ok) {
       const data = await res.json();
@@ -210,7 +210,7 @@ export async function generateStudyPlan(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ subject, mistakes })
-    }, 3000);
+    }, 12000);
 
     if (res.ok) {
       const data = await res.json();
@@ -261,7 +261,7 @@ export async function generateLessonIndex(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level, year, subject, track, semester })
-    }, 2500);
+    }, 8000);
 
     if (res.ok) {
       const data = await res.json();
@@ -295,7 +295,7 @@ export async function generateLesson(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level, year, subject, lessonTitle, track, semester })
-    }, 6000);
+    }, 16000);
 
     if (res.ok) {
       const data = await res.json();
@@ -331,7 +331,7 @@ export async function generateRevision(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ level, year, subject, track, semester })
-    }, 5000);
+    }, 16000);
 
     if (res.ok) {
       const data = await res.json();
