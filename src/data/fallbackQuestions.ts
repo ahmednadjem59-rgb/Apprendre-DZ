@@ -1,4 +1,6 @@
 import { Question, Difficulty } from "../types";
+import { cleanQuestionText, shuffleAndBalanceQuestions } from "../utils/questionHelpers";
+import { ALL_CURRICULUM_LESSONS } from "./curriculumLessons";
 
 export const FALLBACK_QUESTIONS: Record<string, Question[]> = {
   "اللغة العربية": [
@@ -951,7 +953,8 @@ export function generateProceduralInfiniteQuestions(
   levelId: string = 'middle',
   yearId: string = '1am',
   count: number = 10,
-  difficulty: Difficulty = 'medium'
+  difficulty: Difficulty = 'medium',
+  lessonTitle?: string
 ): Question[] {
   const list: Question[] = [];
   const normSub = subject.toLowerCase();
@@ -959,6 +962,37 @@ export function generateProceduralInfiniteQuestions(
   const isPrimary = levelId === 'primary';
   const isMiddle = levelId === 'middle';
   const isSecondary = levelId === 'secondary';
+
+  // If a specific lesson title was provided, search for matching curriculum descriptions
+  if (lessonTitle) {
+    const subSlug = getSubjectSlug(subject);
+    const curriculumKey = `${levelId}-${yearId}-${subSlug}`;
+    const lessonList = ALL_CURRICULUM_LESSONS[curriculumKey] || [];
+    const cleanLT = cleanQuestionText(lessonTitle);
+    const matchedLesson = lessonList.find(l => {
+      const c = cleanQuestionText(l.title);
+      return c.includes(cleanLT) || cleanLT.includes(c);
+    }) || lessonList[0];
+
+    if (matchedLesson) {
+      list.push({
+        id: `curric_${levelId}_${yearId}_${Math.random().toString(36).substring(2, 7)}`,
+        text: `ما هو المحور أو المفهوم الأساسي لدرس "${matchedLesson.title}" في مقرر ${yearId}؟`,
+        options: [
+          matchedLesson.description,
+          `دراسة نظرية غير مقررة في الفصل الحالي`,
+          `مفاهيم خاصة بمستوى دراسي آخر`,
+          `تطبيقات إضافية خارج المنهاج`
+        ],
+        correctAnswer: 0,
+        difficulty: 'medium',
+        lessonTitle: matchedLesson.title,
+        levelId,
+        yearId,
+        remedyPlan: `يركز درس "${matchedLesson.title}" في المنهاج الجزائري الرسمي على: ${matchedLesson.description}`
+      });
+    }
+  }
 
   for (let i = 0; i < count; i++) {
     const qId = `inf_${levelId}_${yearId}_${i}_${Math.random().toString(36).substring(2, 7)}`;
@@ -1377,7 +1411,8 @@ export function getFallbackQuestions(
   difficulty?: Difficulty,
   levelId?: string,
   yearId?: string,
-  trackId?: string
+  trackId?: string,
+  lessonTitle?: string
 ): Question[] {
   const normalizedKey = normalizeSubjectKey(subject);
   const subSlug = getSubjectSlug(subject);
@@ -1405,6 +1440,22 @@ export function getFallbackQuestions(
   // STRICT ISOLATION: Pool consists ONLY of questions from this specific subject
   let pool = [...gradeSpecificPool, ...subjectFallbackPool];
 
+  // If a specific lesson is requested, prioritize questions matching this lesson
+  if (lessonTitle) {
+    const cleanLesson = cleanQuestionText(lessonTitle);
+    const lessonWords = cleanLesson.split(' ').filter(w => w.length > 2);
+    
+    const lessonMatches = pool.filter(q => {
+      if (q.lessonTitle && cleanQuestionText(q.lessonTitle) === cleanLesson) return true;
+      const cleanQ = cleanQuestionText(q.text + ' ' + (q.remedyPlan || ''));
+      return lessonWords.some(w => cleanQ.includes(w));
+    });
+
+    if (lessonMatches.length > 0) {
+      pool = [...lessonMatches, ...pool.filter(q => !lessonMatches.includes(q))];
+    }
+  }
+
   // Filter by difficulty if requested and available
   let filtered = pool;
   if (difficulty) {
@@ -1414,11 +1465,11 @@ export function getFallbackQuestions(
     }
   }
 
-  // Deduplicate pool by text
+  // Deduplicate pool by normalized text
   const seenTexts = new Set<string>();
   const uniquePool: Question[] = [];
   for (const q of filtered) {
-    const t = q.text.trim();
+    const t = cleanQuestionText(q.text);
     if (!seenTexts.has(t)) {
       seenTexts.add(t);
       uniquePool.push(q);
@@ -1437,7 +1488,7 @@ export function getFallbackQuestions(
     });
   }
 
-  // 3. If STILL need more to fulfill count, dynamically generate procedurally FOR THIS EXACT SUBJECT!
+  // 3. If STILL need more to fulfill count, dynamically generate procedurally FOR THIS EXACT SUBJECT & LESSON!
   if (result.length < count) {
     const needed = count - result.length;
     const procedural = generateProceduralInfiniteQuestions(
@@ -1445,11 +1496,12 @@ export function getFallbackQuestions(
       levelId || 'middle',
       yearId || '4am',
       needed + 5,
-      difficulty || 'medium'
+      difficulty || 'medium',
+      lessonTitle
     );
     for (const pq of procedural) {
       if (result.length >= count) break;
-      const t = pq.text.trim();
+      const t = cleanQuestionText(pq.text);
       if (!seenTexts.has(t)) {
         seenTexts.add(t);
         result.push(pq);
@@ -1457,7 +1509,8 @@ export function getFallbackQuestions(
     }
   }
 
-  return result;
+  // 4. Return questions with balanced, randomized option distribution
+  return shuffleAndBalanceQuestions(result);
 }
 
 export function get50WeeklyContestQuestions(level?: string): Question[] {

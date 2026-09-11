@@ -179,16 +179,60 @@ async function startServer() {
   // 1. Generate Multiple-Choice Questions
   app.post("/api/generate-questions", async (req, res) => {
     try {
-      const { level, year, subject, difficulty = "medium", track = "", count = 10, semester } = req.body;
-      const cacheKey = `questions_${level}_${year}_${subject}_${difficulty}_${track || ''}_${semester || ''}_${count}`;
-      const cached = getCached(cacheKey, 20 * 60 * 1000);
-      if (cached && Array.isArray(cached) && cached.length >= count) {
-        return res.json({ success: true, questions: cached.slice(0, count), cached: true });
+      const { 
+        level, 
+        year, 
+        subject, 
+        difficulty = "medium", 
+        track = "", 
+        count = 10, 
+        semester, 
+        lessonTitle, 
+        forceFresh,
+        levelId: reqLevelId,
+        yearId: reqYearId,
+        trackId: reqTrackId
+      } = req.body;
+
+      // Infer levelId and yearId if not provided directly
+      let levelId = reqLevelId;
+      let yearId = reqYearId;
+      if (!levelId || !yearId) {
+        const ln = (level || "").toLowerCase();
+        const yn = (year || "").toLowerCase();
+        if (ln.includes("ابتدائي") || ln.includes("primary")) {
+          levelId = "primary";
+          if (yn.includes("1") || yn.includes("أولى")) yearId = "1ap";
+          else if (yn.includes("2") || yn.includes("ثانية")) yearId = "2ap";
+          else if (yn.includes("3") || yn.includes("ثالثة")) yearId = "3ap";
+          else if (yn.includes("4") || yn.includes("رابعة")) yearId = "4ap";
+          else yearId = "5ap";
+        } else if (ln.includes("ثانوي") || ln.includes("secondary")) {
+          levelId = "secondary";
+          if (yn.includes("1") || yn.includes("أولى")) yearId = "1as";
+          else if (yn.includes("2") || yn.includes("ثانية")) yearId = "2as";
+          else yearId = "3as";
+        } else {
+          levelId = "middle";
+          if (yn.includes("1") || yn.includes("أولى")) yearId = "1am";
+          else if (yn.includes("2") || yn.includes("ثانية")) yearId = "2am";
+          else if (yn.includes("3") || yn.includes("ثالثة")) yearId = "3am";
+          else yearId = "4am";
+        }
+      }
+
+      const cacheKey = `questions_${levelId}_${yearId}_${subject}_${difficulty}_${track || ''}_${semester || ''}_${lessonTitle || 'all'}_${count}`;
+      if (!forceFresh) {
+        const cached = getCached(cacheKey, 20 * 60 * 1000);
+        if (cached && Array.isArray(cached) && cached.length >= count) {
+          return res.json({ success: true, questions: cached.slice(0, count), cached: true });
+        }
       }
 
       const ai = getGeminiClient();
       if (!ai) {
-        return res.status(200).json({ success: false, error: "GEMINI_API_KEY is not configured", questions: [] });
+        const fallback = shuffleAndBalanceQuestionOptions(getFallbackQuestions(subject, count, difficulty, levelId, yearId, reqTrackId || track, lessonTitle));
+        return res.status(200).json({ success: true, fallback: true, questions: fallback });
       }
 
       const difficultyMap: Record<string, string> = {
@@ -199,31 +243,34 @@ async function startServer() {
 
       const trackInfo = track ? `الشعبة/المسار: ${track}` : "";
       const semesterInfo = semester ? `الفصل الدراسي: الفصل ${semester}` : "";
+      const lessonInfo = lessonTitle ? `الدرس المحدد حصراً: "${lessonTitle}"` : "";
       const randomSeed = Math.random().toString(36).substring(2, 7);
 
       const prompt = `أنت خبير تربوي ومفتش تعليمي جزائري معتمد لدى وزارة التربية الوطنية الجزائرية.
-مهمتك الأساسية هي صياغة ${count} أسئلة اختيار من متعدد (QCM) جديدة كلياً وغير مكررة لمادة "${subject}" للمستوى "${level}" وتحديداً لـ "${year}" ${trackInfo} ${semesterInfo} (مستوى الصعوبة: ${difficultyMap[difficulty] || difficultyMap.medium}).
+مهمتك الأساسية هي صياغة ${count} أسئلة اختيار من متعدد (QCM) جديدة كلياً وغير مكررة لمادة "${subject}" للمستوى "${level}" وتحديداً لـ "${year}" ${trackInfo} ${semesterInfo} ${lessonInfo} (مستوى الصعوبة: ${difficultyMap[difficulty] || difficultyMap.medium}).
 معرف التوليد العشوائي للتنويع اللانهائي: ${randomSeed}.
 
-قواعد تربوية صارمة جداً (Curriculum Compliance):
-1. **الالتزام الحرفي بالمنهاج الجزائري الرسمي المعتمد**:
-   - يجب أن تكون كل الأسئلة مأخوذة حصراً ومباشرة من الدروس والمفاهيم المقررة التي يدرسها التلميذ فعلياً في "${year}" في المنهاج الجزائري.
-   - **يُمنع منعاً باتاً** وضع أسئلة من سنوات دراسية أعلى (مثلاً: لا تضع مفاهيم المتوسط لتلاميذ الابتدائي، ولا تضع مفاهيم الثانوي والاشتقاقية لتلاميذ المتوسط).
-   - **يُمنع منعاً باتاً** وضع أسئلة تافهة أو من سنوات أدنى بكثير لا تناسب الفئة العمرية للقسم.
-   - إذا تم تحديد "${semesterInfo}"، يجب أن تنتمي الأسئلة حصراً للمقاطع التعلمية والوحدات المقررة في ذلك الفصل حسب التوزيع السنوي الرسمي.
+قواعد تربوية صارمة جداً (Curriculum & Lesson Compliance):
+1. **الالتزام الحرفي بالمنهاج الجزائري الرسمي المعتمد لـ (${subject} - ${year})**:
+   - يجب أن تكون كل الأسئلة مأخوذة حصراً ومباشرة من الدروس والمفاهيم المقررة التي يدرسها التلميذ فعلياً في "${year}" في مادة "${subject}".
+   - **يُمنع منعاً باتاً** خلط المواد: لا تضع أسئلة من مادة أخرى مطلقاً (إذا كانت المادة رياضيات فالأسئلة كلها رياضيات، وإذا كانت لغة عربية فالأسئلة كلها لغة عربية، وإذا كانت علوم فالأسئلة كلها علوم طبيعية).
+   - **يُمنع منعاً باتاً** وضع أسئلة من أطوار أخرى (لا تضع مفاهيم المتوسط لتلاميذ الابتدائي، ولا تضع مفاهيم الثانوي للطور المتوسط).
+${lessonTitle ? `
+2. **التركيز البيداغوجي الحصري والمطلق على درس: "${lessonTitle}"**:
+   - التلميذ اختار اختباراً مخصصاً لدرس "${lessonTitle}".
+   - يجب أن تركز جميع الأسئلة الـ ${count} بنسبة 100% على المفاهيم، القواعد، التطبيقات، أو المسائل الخاصة بهذا الدرس بالتحديد في المنهاج الجزائري.
+   - لا تخرج عن نطاق هذا الدرس على الإطلاق.
+` : `
+2. **الشمول والتوزيع حسب مقاطع الفصل**:
+   - غطِّ مفاهيم المادة المقررة لـ "${year}" ${semesterInfo} بتوازن وتدرج منهجي سليم.
+`}
 
-2. **التنويع واللانهاية في الأسئلة (Endless Non-Repeating Generation)**:
-   - نوّع في سياق الأسئلة: بين تطبيقات مباشرة، مفاهيم نظرية، استنتاجات، مسائل حسابية، وضعيات بسيطة، وتحليل لغوي/علمي.
-   - لا تكرر الأسئلة الشائعة ذاتها في كل مرة، بل استكشف مقاطع ومفاهيم وجوانب مختلفة من المنهاج الدراسي لتلك السنة.
-
-3. **التدرج البيداغوجي ومطابقة الفئة العمرية**:
-   - **الطور الابتدائي (1AP - 5AP)**: صياغة لغوية واضحة ومبسطة، مراعاة مستويات القراءة والحساب المقررة لكل سنة (حروف وأرقام صغيرة لـ 1AP-2AP، جداول الضرب والكسور لـ 3AP-4AP، النواسخ والتناسبية لـ 5AP).
-   - **الطور المتوسط (1AM - 4AM)**: الالتزام بكفاءات شهادة التعليم المتوسط (BEM)، مثل الأعداد النسبية، PGCD، طالس وفيثاغورس، الدارات، المناعة والوراثة، الجملة المركبة والبدل والتمييز.
-   - **الطور الثانوي (1AS - 3AS)**: الالتزام الصارم ببرنامج البكالوريا والتخصص المحدد (علمي، رياضي، أدبي، لغات، تسيير).
+3. **منع التكرار والتنويع (Zero Repetition)**:
+   - كل سؤال يجب أن يطرح فكرة أو مسألة مختلفة بصياغة بيداغوجية دقيقة وخالية من أي حشو أو غموض.
 
 4. **شروط السؤال والخيارات والتنويع العادل**:
    - 4 خيارات متقاربة ومقنعة علمياً ولغوياً، مع إجابة صحيحة واحدة قاطعة لا لبس فيها.
-   - **هام جداً للتوازن**: وزّع موضع الإجابة الصحيحة ("correctAnswer") عشوائياً بين الخيارات (0، 1، 2، 3). يُمنع منعاً باتاً جعل الإجابة دائماً الخيار 0 أو التركيز على موضع واحد، بل يجب أن يكون مزيجاً متغيراً وموزعاً بالتساوي.
+   - وزّع موضع الإجابة الصحيحة ("correctAnswer") عشوائياً بين الخيارات (0، 1، 2، 3).
    - شرح نموذجي وافٍ ومبسط في حقل "remedyPlan" يوضح للتلميذ القاعدة والتعليل البيداغوجي الصحيح المعتمد في المدرسة الجزائرية.
 
 أرجع مصفوفة JSON فقط بالشكل التالي:
@@ -258,11 +305,19 @@ async function startServer() {
       }
       const finalQuestions = balancedGenerated.length > 0 
         ? balancedGenerated 
-        : shuffleAndBalanceQuestionOptions(getFallbackQuestions(subject, count, difficulty));
+        : shuffleAndBalanceQuestionOptions(getFallbackQuestions(subject, count, difficulty, levelId, yearId, reqTrackId || track, lessonTitle));
       return res.json({ success: true, questions: finalQuestions });
     } catch (err: any) {
       console.warn("API /api/generate-questions handled error gracefully:", err?.message || err);
-      const fallback = shuffleAndBalanceQuestionOptions(getFallbackQuestions(req.body?.subject || "general", req.body?.count || 10, req.body?.difficulty || "medium"));
+      const fallback = shuffleAndBalanceQuestionOptions(getFallbackQuestions(
+        req.body?.subject || "general", 
+        req.body?.count || 10, 
+        req.body?.difficulty || "medium",
+        req.body?.levelId,
+        req.body?.yearId,
+        req.body?.trackId || req.body?.track,
+        req.body?.lessonTitle
+      ));
       return res.status(200).json({ success: true, fallback: true, questions: fallback });
     }
   });

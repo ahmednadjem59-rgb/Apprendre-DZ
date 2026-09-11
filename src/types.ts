@@ -10,6 +10,11 @@ export interface Question {
   subject?: string;
   explanation?: string;
   remedyPlan?: string;
+  lessonTitle?: string;
+  levelId?: string;
+  yearId?: string;
+  trackId?: string;
+  semester?: number | string;
 }
 
 export interface CustomQuestion extends Question {
@@ -19,6 +24,7 @@ export interface CustomQuestion extends Question {
   subjectName?: string;
   trackId?: string;
   semester?: number | string;
+  lessonTitle?: string;
   authorEmail?: string;
   createdAt?: string;
 }
