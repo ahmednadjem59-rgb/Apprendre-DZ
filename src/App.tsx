@@ -144,75 +144,75 @@ const IconMap: Record<string, any> = {
 type AppView = 'welcome' | 'auth' | 'levels' | 'tracks' | 'years' | 'semester' | 'subjects' | 'subjectMode' | 'lessonIndex' | 'difficulty' | 'quiz' | 'results' | 'contest' | 'lessons' | 'lessonContent' | 'revision' | 'revisionContent' | 'marketplace' | 'challenges' | 'profile' | 'admin' | 'adminQuestions' | 'achievements' | 'about' | 'privacy' | 'ai-exercises' | 'library' | 'booking' | 'printed-store' | 'lesson-purchase' | 'startup-pitch' | 'chats';
 
 const AVATARS = [
-  { id: 'av1', name: 'المفكر الذكي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Felix', price: 250 },
-  { id: 'av2', name: 'المكتشف الصغير', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka', price: 250 },
-  { id: 'av3', name: 'عالم المستقبل', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Starlight', price: 250 },
-  { id: 'av4', name: 'الباحث المثابر', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Toby', price: 250 },
-  { id: 'av5', name: 'عبقري الرياضيات', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Matrix', price: 250 },
-  { id: 'av6', name: 'فيلسوف العصر', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=George', price: 250 },
-  // 50 NEW AVATARS (PRICES 100-2000)
-  { id: 'av7', name: 'القائد الشجاع', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Max', price: 150 },
-  { id: 'av8', name: 'المبدع الفني', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bella', price: 300 },
-  { id: 'av9', name: 'المهندس النجم', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Robo', price: 450 },
-  { id: 'av10', name: 'بطل البرمجة', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Code', price: 500 },
-  { id: 'av11', name: 'طالب العلم', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sara', price: 100 },
-  { id: 'av12', name: 'المكتشف الطموح', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jack', price: 350 },
-  { id: 'av13', name: 'الخبير الرقمي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Tech', price: 600 },
-  { id: 'av14', name: 'المبتكر الصغير', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lilly', price: 200 },
-  { id: 'av15', name: 'المسافر الفضائي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Space', price: 800 },
-  { id: 'av16', name: 'أسد المعرفة', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Leo', price: 400 },
-  { id: 'av17', name: 'نجم الفيزياء', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Atom', price: 550 },
-  { id: 'av18', name: 'ساحر الكلمات', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Word', price: 300 },
-  { id: 'av19', name: 'ملك الأرقام', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Math', price: 450 },
-  { id: 'av20', name: 'الغواص الذكي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Deep', price: 350 },
-  { id: 'av21', name: 'حارس الطبيعة', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Green', price: 250 },
-  { id: 'av22', name: 'المصور البارع', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lens', price: 500 },
-  { id: 'av23', name: 'الرياضي المثالي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sport', price: 600 },
-  { id: 'av24', name: 'عازف الأفكار', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Note', price: 700 },
-  { id: 'av25', name: 'الروبوت المفكر', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Think', price: 900 },
-  { id: 'av26', name: 'سفير السلام', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Peace', price: 450 },
-  { id: 'av27', name: 'عالم الحفريات', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dino', price: 550 },
-  { id: 'av28', name: 'المكتشف الجغرافي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Map', price: 600 },
-  { id: 'av29', name: 'كيمائي المستقبل', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Chem', price: 750 },
-  { id: 'av30', name: 'المؤرخ الصغير', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Past', price: 300 },
-  { id: 'av31', name: 'طبيب الغد', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Med', price: 850 },
-  { id: 'av32', name: 'لاعب الشطرنج', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chess', price: 1000 },
-  { id: 'av33', name: 'صانع السلام', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Unity', price: 500 },
-  { id: 'av34', name: 'القائد الرقمي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Lead', price: 1200 },
-  { id: 'av35', name: 'طيار الأحلام', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Fly', price: 700 },
-  { id: 'av36', name: 'غواص البيانات', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Data', price: 1100 },
-  { id: 'av37', name: 'رائد الأعمال', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Boss', price: 1500 },
-  { id: 'av38', name: 'المحامي الذكي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Law', price: 900 },
-  { id: 'av39', name: 'الدبلوماسي الصغير', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=World', price: 800 },
-  { id: 'av40', name: 'المصمم الرائع', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Art', price: 1300 },
-  { id: 'av41', name: 'البطل الخارق', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Super', price: 1800 },
-  { id: 'av42', name: 'النينجا التعليمي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ninja', price: 1400 },
-  { id: 'av43', name: 'الساحر التقني', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Mage', price: 1600 },
-  { id: 'av44', name: 'الأستاذ الصغير', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Prof', price: 600 },
-  { id: 'av45', name: 'عالم الفلك', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Star', price: 950 },
-  { id: 'av46', name: 'المبرمج العبقري', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Hack', price: 1700 },
-  { id: 'av47', name: 'المحقق الذكي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Spy', price: 750 },
-  { id: 'av48', name: 'ملك الغابة الرقمية', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=King', price: 1900 },
-  { id: 'av49', name: 'الموسيقي المبدع', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Beat', price: 850 },
-  { id: 'av50', name: 'الفارس الشجاع', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Knight', price: 1100 },
-  { id: 'av51', name: 'الغواص العميق', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ocean', price: 650 },
-  { id: 'av52', name: 'المبتكر السحابي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Cloud', price: 1350 },
-  { id: 'av53', name: 'جامع النجوم', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Wish', price: 400 },
-  { id: 'av54', name: 'المدرب المحترف', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Coach', price: 1250 },
-  { id: 'av55', name: 'المستشار الذكي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Wise', price: 1550 },
-  { id: 'av56', name: 'بطل القراءة', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Read', price: 200 },
+  { id: 'av1', name: 'المفكر الذكي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Felix', price: 30 },
+  { id: 'av2', name: 'المكتشف الصغير', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka', price: 30 },
+  { id: 'av3', name: 'عالم المستقبل', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Starlight', price: 35 },
+  { id: 'av4', name: 'الباحث المثابر', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Toby', price: 35 },
+  { id: 'av5', name: 'عبقري الرياضيات', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Matrix', price: 40 },
+  { id: 'av6', name: 'فيلسوف العصر', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=George', price: 40 },
+  // فئة الصور المتدرجة (أسعار تناسب نقاط الأسئلة 25 - 250 نقطة)
+  { id: 'av7', name: 'القائد الشجاع', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Max', price: 25 },
+  { id: 'av8', name: 'المبدع الفني', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Bella', price: 45 },
+  { id: 'av9', name: 'المهندس النجم', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Robo', price: 50 },
+  { id: 'av10', name: 'بطل البرمجة', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Code', price: 55 },
+  { id: 'av11', name: 'طالب العلم', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sara', price: 20 },
+  { id: 'av12', name: 'المكتشف الطموح', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Jack', price: 60 },
+  { id: 'av13', name: 'الخبير الرقمي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Tech', price: 70 },
+  { id: 'av14', name: 'المبتكر الصغير', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lilly', price: 30 },
+  { id: 'av15', name: 'المسافر الفضائي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Space', price: 80 },
+  { id: 'av16', name: 'أسد المعرفة', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Leo', price: 65 },
+  { id: 'av17', name: 'نجم الفيزياء', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Atom', price: 75 },
+  { id: 'av18', name: 'ساحر الكلمات', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Word', price: 45 },
+  { id: 'av19', name: 'ملك الأرقام', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Math', price: 65 },
+  { id: 'av20', name: 'الغواص الذكي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Deep', price: 50 },
+  { id: 'av21', name: 'حارس الطبيعة', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Green', price: 35 },
+  { id: 'av22', name: 'المصور البارع', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lens', price: 60 },
+  { id: 'av23', name: 'الرياضي المثالي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sport', price: 70 },
+  { id: 'av24', name: 'عازف الأفكار', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Note', price: 85 },
+  { id: 'av25', name: 'الروبوت المفكر', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Think', price: 90 },
+  { id: 'av26', name: 'سفير السلام', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Peace', price: 55 },
+  { id: 'av27', name: 'عالم الحفريات', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Dino', price: 75 },
+  { id: 'av28', name: 'المكتشف الجغرافي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Map', price: 80 },
+  { id: 'av29', name: 'كيمائي المستقبل', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Chem', price: 95 },
+  { id: 'av30', name: 'المؤرخ الصغير', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Past', price: 40 },
+  { id: 'av31', name: 'طبيب الغد', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Med', price: 100 },
+  { id: 'av32', name: 'لاعب الشطرنج', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Chess', price: 120 },
+  { id: 'av33', name: 'صانع السلام', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Unity', price: 60 },
+  { id: 'av34', name: 'القائد الرقمي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Lead', price: 130 },
+  { id: 'av35', name: 'طيار الأحلام', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Fly', price: 85 },
+  { id: 'av36', name: 'غواص البيانات', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Data', price: 125 },
+  { id: 'av37', name: 'رائد الأعمال', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Boss', price: 160 },
+  { id: 'av38', name: 'المحامي الذكي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Law', price: 110 },
+  { id: 'av39', name: 'الدبلوماسي الصغير', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=World', price: 95 },
+  { id: 'av40', name: 'المصمم الرائع', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Art', price: 140 },
+  { id: 'av41', name: 'البطل الخارق', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Super', price: 180 },
+  { id: 'av42', name: 'النينجا التعليمي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ninja', price: 150 },
+  { id: 'av43', name: 'الساحر التقني', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Mage', price: 170 },
+  { id: 'av44', name: 'الأستاذ الصغير', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Prof', price: 80 },
+  { id: 'av45', name: 'عالم الفلك', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Star', price: 115 },
+  { id: 'av46', name: 'المبرمج العبقري', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Hack', price: 190 },
+  { id: 'av47', name: 'المحقق الذكي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Spy', price: 90 },
+  { id: 'av48', name: 'ملك الغابة الرقمية', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=King', price: 210 },
+  { id: 'av49', name: 'الموسيقي المبدع', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Beat', price: 95 },
+  { id: 'av50', name: 'الفارس الشجاع', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Knight', price: 130 },
+  { id: 'av51', name: 'الغواص العميق', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ocean', price: 75 },
+  { id: 'av52', name: 'المبتكر السحابي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Cloud', price: 150 },
+  { id: 'av53', name: 'جامع النجوم', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Wish', price: 50 },
+  { id: 'av54', name: 'المدرب المحترف', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Coach', price: 140 },
+  { id: 'av55', name: 'المستشار الذكي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Wise', price: 175 },
+  { id: 'av56', name: 'بطل القراءة', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Read', price: 25 },
 
-  // 10 PREMIUM EXPENSIVE AVATARS (PRICES 5000-20000)
-  { id: 'av57', name: 'التاج الماسي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Diamond', price: 5000 },
-  { id: 'av58', name: 'الإمبراطور الذهبي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Empire', price: 7500 },
-  { id: 'av59', name: 'الأسطورة الخالدة', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Legend', price: 10000 },
-  { id: 'av60', name: 'سيد الكون', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Cosmos', price: 12500 },
-  { id: 'av61', name: 'العبقري الأعلى', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zenith', price: 15000 },
-  { id: 'av62', name: 'حارس البوابة المظلمة', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Void', price: 17500 },
-  { id: 'av63', name: 'ملك الزمان', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Eternal', price: 18500 },
-  { id: 'av64', name: 'النور المطلق', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Radiant', price: 19000 },
-  { id: 'av65', name: 'نجم المجرة المفقودة', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Nebula', price: 19500 },
-  { id: 'av66', name: 'الإله الأكاديمي 🏆', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=God', price: 20000 },
+  // صور النخبة والتاج (مكافآت التميز في حل الأسئلة: 250 - 500 نقطة)
+  { id: 'av57', name: 'التاج الماسي', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Diamond', price: 250 },
+  { id: 'av58', name: 'الإمبراطور الذهبي', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Empire', price: 280 },
+  { id: 'av59', name: 'الأسطورة الخالدة', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Legend', price: 320 },
+  { id: 'av60', name: 'سيد الكون', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Cosmos', price: 350 },
+  { id: 'av61', name: 'العبقري الأعلى', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Zenith', price: 380 },
+  { id: 'av62', name: 'حارس البوابة المظلمة', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Void', price: 400 },
+  { id: 'av63', name: 'ملك الزمان', url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Eternal', price: 420 },
+  { id: 'av64', name: 'النور المطلق', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Radiant', price: 450 },
+  { id: 'av65', name: 'نجم المجرة المفقودة', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Nebula', price: 480 },
+  { id: 'av66', name: 'الإله الأكاديمي 🏆', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=God', price: 500 },
 ];
 
 const generateStudentId = () => {
@@ -2032,7 +2032,7 @@ export default function App() {
     }
   }, [currentQuestionIndex, isContestQuiz]);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const [showFeedback, setShowFeedback] = useState<{ correct: boolean, answer: number } | null>(null);
+  const [showFeedback, setShowFeedback] = useState<{ correct: boolean, answer: number, question?: Question } | null>(null);
   const transitionTimeoutRef = useRef<any>(null);
   const [userAnswers, setUserAnswers] = useState<boolean[]>([]);
   const [dailyStudySeconds, setDailyStudySeconds] = useState(0);
@@ -2201,13 +2201,18 @@ export default function App() {
                 });
               }
 
-              setTotalPoints(data.totalPoints || 0);
-              // Special initialization for owner: Ensure 70 points and teacher role
+              let initialUserPoints = Number(data.totalPoints || 0);
+              // Clean up any old infinite/inflated points so no user has infinite points
+              if (initialUserPoints >= 50000) {
+                initialUserPoints = 0;
+                updateDoc(userDoc, { totalPoints: 0 }).catch(e => console.error(e));
+              }
+              setTotalPoints(initialUserPoints);
+              // Teacher role initialization for admin/owner without artificial points
               const isOwnerUser = isUserAdmin(user.email, data.role);
               if (isOwnerUser) {
                 const userDocRef = doc(db, 'users', user.uid);
                 const updates: any = {};
-                if ((data.totalPoints || 0) < 70) updates.totalPoints = 70;
                 if (data.role !== 'teacher' && data.role !== 'admin') {
                   updates.role = 'teacher';
                   if (!data.teacherCode) updates.teacherCode = generateTeacherCode();
@@ -2964,18 +2969,57 @@ export default function App() {
       const updates: any = { 
         isPremium: willBePremium
       };
-      
-      // When activating premium services, give infinite points (999,999)
-      if (willBePremium) {
-        updates.totalPoints = 999999;
+      // When canceling subscription, points reset to 0
+      if (!willBePremium) {
+        updates.totalPoints = 0;
       }
       
       await updateDoc(userRef, updates);
+      if (user && targetUserId === user.uid) {
+        setIsPremium(willBePremium);
+        if (!willBePremium) {
+          setTotalPoints(0);
+        }
+      }
       // Refresh list
       fetchAllUsers();
-      showNotification(`تم ${willBePremium ? 'تفعيل الخدمات ومنح نقاط لا نهائية (∞) بنجاح ✨' : 'إلغاء الاشتراك بنجاح'}`, 'success');
+      showNotification(`تم ${willBePremium ? 'تفعيل الاشتراك بنجاح ✨' : 'إلغاء الاشتراك وتصفير النقاط إلى 0 بنجاح'}`, 'success');
     } catch (e: any) {
       handleFirestoreError(e, OperationType.WRITE, `users/${targetUserId}`);
+    }
+  };
+
+  const handleSubscribe = async () => {
+    if (!user) {
+      showNotification('يرجى تسجيل الدخول أولاً للاشتراك', 'info');
+      setShowAuthMenu(true);
+      return;
+    }
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        isPremium: true
+      });
+      setIsPremium(true);
+      showNotification('🎉 مبارك! تم تفعيل الاشتراك بنجاح والاستفادة من ميزات العضوية المميزة ⭐', 'success');
+    } catch (e: any) {
+      handleFirestoreError(e, OperationType.WRITE, `users/${user.uid}`);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    if (!user) return;
+    try {
+      const userRef = doc(db, 'users', user.uid);
+      await updateDoc(userRef, {
+        isPremium: false,
+        totalPoints: 0
+      });
+      setIsPremium(false);
+      setTotalPoints(0);
+      showNotification('تم إلغاء الاشتراك بنجاح، وأصبح رصيد نقاطك 0.', 'info');
+    } catch (e: any) {
+      handleFirestoreError(e, OperationType.WRITE, `users/${user.uid}`);
     }
   };
 
@@ -3094,8 +3138,9 @@ export default function App() {
   const baseKey = useMemo(() => {
     if (isContestQuiz) return 'contest';
     const trackPart = selectedTrackId ? `-${selectedTrackId}` : '';
-    return `${selectedLevelId}-${selectedYearId}${trackPart}-${selectedSubject?.id}`;
-  }, [selectedLevelId, selectedYearId, selectedTrackId, selectedSubject, isContestQuiz]);
+    const lessonPart = selectedLessonTitle ? `-l_${cleanQuestionText(selectedLessonTitle).slice(0, 25)}` : '';
+    return `${selectedLevelId}-${selectedYearId}${trackPart}-${selectedSubject?.id}${lessonPart}`;
+  }, [selectedLevelId, selectedYearId, selectedTrackId, selectedSubject, isContestQuiz, selectedLessonTitle]);
 
   const semesterKey = useMemo(() => {
     const semesterPart = selectedSemester ? `-s${selectedSemester}` : '';
@@ -3116,12 +3161,15 @@ export default function App() {
     if (isChallengeMode && activeChallenge?.id) return `challenge-${activeChallenge.id}`;
     if (isContestQuiz) return `contest-${selectedLevelId || 'all'}-${contestRound}`;
     const subSlug = selectedSubject ? getSubjectSlug(selectedSubject.name || selectedSubject.id) : 'none';
-    return `${selectedLevelId}-${selectedYearId}-${selectedTrackId || 'none'}-${subSlug}-s${selectedSemester || 'all'}-${selectedDifficulty || 'all'}`;
-  }, [isChallengeMode, activeChallenge?.id, isContestQuiz, selectedLevelId, contestRound, selectedSubject, selectedYearId, selectedTrackId, selectedSemester, selectedDifficulty]);
+    const lessonPart = selectedLessonTitle ? `-l_${cleanQuestionText(selectedLessonTitle).slice(0, 25)}` : '';
+    return `${selectedLevelId}-${selectedYearId}-${selectedTrackId || 'none'}-${subSlug}-s${selectedSemester || 'all'}-${selectedDifficulty || 'all'}${lessonPart}`;
+  }, [isChallengeMode, activeChallenge?.id, isContestQuiz, selectedLevelId, contestRound, selectedSubject, selectedYearId, selectedTrackId, selectedSemester, selectedDifficulty, selectedLessonTitle]);
 
   const [quizSessionVersion, setQuizSessionVersion] = useState(0);
 
-  const questions = useMemo(() => {
+  const [sessionQuestions, setSessionQuestions] = useState<Question[]>([]);
+
+  const generateSessionQuestions = useCallback(() => {
     if (isChallengeMode && activeChallenge?.questions && activeChallenge.questions.length > 0) {
       return shuffleAndBalanceQuestions(activeChallenge.questions);
     }
@@ -3172,7 +3220,20 @@ export default function App() {
       return !exactCustomMatches.some(m => m.id === q.id || m.text.trim() === q.text.trim());
     });
 
-    const customMatches = [...exactCustomMatches, ...yearSubjectCustomMatches];
+    let customMatches = [...exactCustomMatches, ...yearSubjectCustomMatches];
+
+    // If a specific lesson was chosen, prioritize custom questions matching this lesson
+    if (selectedLessonTitle) {
+      const cleanLT = cleanQuestionText(selectedLessonTitle);
+      const lessonSpecificCustom = customMatches.filter(q => {
+        if (q.lessonTitle && cleanQuestionText(q.lessonTitle) === cleanLT) return true;
+        const textClean = cleanQuestionText(q.text + ' ' + (q.remedyPlan || ''));
+        return textClean.includes(cleanLT);
+      });
+      if (lessonSpecificCustom.length > 0) {
+        customMatches = [...lessonSpecificCustom, ...customMatches.filter(q => !lessonSpecificCustom.includes(q))];
+      }
+    }
 
     // Static questions strictly for the current subject slug
     const specificStaticKeys: string[] = [];
@@ -3194,7 +3255,7 @@ export default function App() {
     // Dynamic AI questions generated for this exact key
     const dynamicBatch = dynamicQuestions[key] || [];
 
-    // Fallback questions strictly for this subject
+    // Fallback questions strictly for this subject and lesson
     const combinedInitial = [...customMatches, ...staticBatch, ...dynamicBatch];
     const fallbackInstant = (selectedSubject && combinedInitial.length < 25)
       ? getFallbackQuestions(
@@ -3203,7 +3264,8 @@ export default function App() {
           selectedDifficulty || 'medium',
           selectedLevelId,
           selectedYearId,
-          selectedTrackId
+          selectedTrackId,
+          selectedLessonTitle || undefined
         )
       : [];
 
@@ -3220,18 +3282,53 @@ export default function App() {
       }
     }
 
-    // Filter out questions answered by the student TODAY:
-    const unAnsweredToday = unique.filter(q => {
-      const isSeenId = dailyAnsweredSet.ids.has(q.id);
+    // Filter out questions answered by the student prior to this session
+    const unAnswered = unique.filter(q => {
+      const isSeenId = dailyAnsweredSet.ids.has(q.id) || seenQuestionIds.includes(q.id);
       const isSeenText = dailyAnsweredSet.texts.has(cleanQuestionText(q.text));
       return !isSeenId && !isSeenText;
     });
 
-    const candidateQuestions = unAnsweredToday.length >= 5 ? unAnsweredToday : unique;
+    // Strictly prioritize unseen questions so questions do not appear multiple times
+    const candidateQuestions = unAnswered.length > 0 ? unAnswered : unique;
     return shuffleAndBalanceQuestions(candidateQuestions);
-  }, [quizSessionKey, quizSessionVersion, customQuestionsList.length]);
+  }, [
+    isChallengeMode,
+    activeChallenge?.questions,
+    isContestQuiz,
+    key,
+    selectedLevel?.name,
+    selectedSubject,
+    selectedLevelId,
+    selectedYearId,
+    selectedTrackId,
+    selectedTrack?.id,
+    selectedSemester,
+    selectedDifficulty,
+    selectedLessonTitle,
+    customQuestionsList,
+    dynamicQuestions
+  ]);
+
+  // Sync and initialize session questions when a session starts or changes
+  useEffect(() => {
+    if (view === 'quiz' || isContestQuiz || isChallengeMode) {
+      const initial = generateSessionQuestions();
+      setSessionQuestions(initial);
+    }
+  }, [quizSessionKey, quizSessionVersion, view]);
+
+  // Active quiz questions: uses sessionQuestions to prevent re-shuffling or dropping active questions mid-quiz
+  const questions = useMemo(() => {
+    if (sessionQuestions.length > 0) return sessionQuestions;
+    if (view === 'quiz' || isContestQuiz || isChallengeMode) {
+      return generateSessionQuestions();
+    }
+    return [];
+  }, [sessionQuestions, view, isContestQuiz, isChallengeMode, generateSessionQuestions]);
 
   const currentQuestion = questions[Math.min(currentQuestionIndex, Math.max(0, questions.length - 1))] || questions[0];
+  const activeDisplayQuestion = (showFeedback && showFeedback.question) ? showFeedback.question : currentQuestion;
 
   // Auto-generate more questions silently when needed in quiz mode
   useEffect(() => {
@@ -3283,14 +3380,15 @@ export default function App() {
               selectedDifficulty || 'medium', 
               trackName, 
               10,
-              selectedSemester || undefined
+              selectedSemester || undefined,
+              selectedLessonTitle || undefined
             );
             
             if (newQuestions.length > 0) {
               setDynamicQuestions(prev => {
                 const existing = prev[key] || [];
-                const existingTexts = new Set(existing.map(q => q.text.trim()));
-                const filteredNew = newQuestions.filter(q => !existingTexts.has(q.text.trim()));
+                const existingTexts = new Set(existing.map(q => cleanQuestionText(q.text)));
+                const filteredNew = newQuestions.filter(q => !existingTexts.has(cleanQuestionText(q.text)));
                 const maxStored = 200;
                 const updated = [...existing, ...filteredNew].slice(0, maxStored);
                 return {
@@ -3318,29 +3416,35 @@ export default function App() {
   };
 
   const handleBuyAvatar = async (avatarId: string) => {
-    if (!user) return;
+    if (!user) {
+      showNotification('يرجى تسجيل الدخول أولاً لشراء الصور الرمزية بالنقاط', 'info');
+      setShowAuthMenu(true);
+      return;
+    }
     const avatar = AVATARS.find(a => a.id === avatarId);
     if (!avatar) return;
     
-    const isAdmin = isUserAdmin(user.email, userRole);
-    const hasUnlimitedPoints = isAdmin || isPremium || totalPoints >= 999999;
-    
-    if (totalPoints < avatar.price && !hasUnlimitedPoints) {
-      showNotification(`رصيدك غير كافٍ. تحتاج إلى ${avatar.price} نقطة لشراء هذه الصورة.`, 'info');
+    if (totalPoints < avatar.price) {
+      showNotification(`رصيدك غير كافٍ. تحتاج إلى ${avatar.price} نقطة من إجابات الأسئلة (رصيدك الحالي: ${totalPoints} نقطة).`, 'info');
       return;
     }
     if (unlockedAvatars.includes(avatarId)) {
-      showNotification('لقد اشتريت هذه الصورة بالفعل.', 'info');
+      showNotification('لقد اشتريت هذه الصورة الرمزية بالفعل.', 'info');
       return;
     }
+
+    const newPoints = Math.max(0, totalPoints - avatar.price);
 
     try {
       const userDoc = doc(db, 'users', user.uid);
       await updateDoc(userDoc, {
-        totalPoints: hasUnlimitedPoints ? totalPoints : (totalPoints - avatar.price),
+        totalPoints: newPoints,
         unlockedAvatars: arrayUnion(avatarId)
       });
-      showNotification('تم شراء الصورة بنجاح! يمكنك الآن تفعيلها من ملفك الشخصي.', 'success');
+      // تحديث فوري للحالة في الواجهة
+      setTotalPoints(newPoints);
+      setUnlockedAvatars(prev => [...prev, avatarId]);
+      showNotification(`🎉 تم شراء صورة "${avatar.name}" بنجاح! (تم خصم ${avatar.price} نقطة من رصيدك، المتبقي: ${newPoints} نقطة)`, 'success');
     } catch (err: any) {
       handleFirestoreError(err, OperationType.UPDATE, `users/${user.uid}`);
     }
@@ -3469,6 +3573,7 @@ export default function App() {
     if (!handleLessonView()) return;
 
     if (mode === 'quiz') {
+      setSelectedLessonTitle(''); // Reset lesson filter so quiz is comprehensive
       setView('semester');
     } else if (mode === 'lessons') {
       setView('lessonIndex');
@@ -3477,6 +3582,55 @@ export default function App() {
       loadLessonsForSubject(initialSemester);
     } else if (mode === 'revision') {
       handleLoadRevision(selectedSubject);
+    }
+  };
+
+  const handleStartLessonQuiz = async (lessonTitleToQuiz: string) => {
+    if (!selectedSubject) return;
+    const cleanLT = lessonTitleToQuiz.trim();
+    setSelectedLessonTitle(cleanLT);
+    setSelectedDifficulty(selectedDifficulty || 'medium');
+    if (!selectedSemester) setSelectedSemester(1);
+    setIsLoadingQuestions(true);
+    setQuizSessionVersion(v => v + 1);
+    setCurrentQuestionIndex(0);
+    setScore(0);
+    setUserAnswers([]);
+    setShowFeedback(null);
+    setMistakes([]);
+    setStudyPlan('');
+    setView('quiz');
+
+    try {
+      const newQuestions = await generateQuestions(
+        selectedLevel?.name || '',
+        selectedYear?.name || '',
+        selectedSubject.name,
+        selectedDifficulty || 'medium',
+        selectedTrack?.name || '',
+        15,
+        selectedSemester ? Number(selectedSemester) : 1,
+        cleanLT,
+        true
+      );
+      if (newQuestions && newQuestions.length > 0) {
+        // Exclude questions already answered/seen
+        const unseenNew = newQuestions.filter(q => !dailyAnsweredSet.ids.has(q.id) && !dailyAnsweredSet.texts.has(cleanQuestionText(q.text)));
+        const toSet = unseenNew.length > 0 ? unseenNew : newQuestions;
+        const diffPart = selectedDifficulty || 'medium';
+        const semPart = selectedSemester ? `-s${selectedSemester}` : '-s1';
+        const lessonPart = cleanLT ? `-l-${cleanLT.replace(/\s+/g, '_')}` : '';
+        const targetLessonKey = `${selectedLevelId || 'level'}-${selectedYearId || 'year'}-${selectedTrackId || 'track'}-${selectedSubject.id}${lessonPart}${semPart}-${diffPart}`;
+        setDynamicQuestions(prev => ({
+          ...prev,
+          [key]: toSet,
+          [targetLessonKey]: toSet
+        }));
+      }
+    } catch (e) {
+      console.error("Error generating lesson quiz:", e);
+    } finally {
+      setIsLoadingQuestions(false);
     }
   };
 
@@ -3589,7 +3743,9 @@ export default function App() {
         selectedDifficulty || 'medium', 
         selectedTrack?.name || '', 
         15,
-        selectedSemester || undefined
+        selectedSemester || undefined,
+        selectedLessonTitle || undefined,
+        true
       );
       if (newQuestions.length > 0) {
         setDynamicQuestions(prev => ({
@@ -3647,17 +3803,27 @@ export default function App() {
       // Sync to database
       if (user) {
         const userRef = doc(db, 'users', user.uid);
+        const participantRef = doc(db, 'contest_participants', user.uid);
         try {
           await updateDoc(userRef, {
             lastWeeklyContestDate: today,
             contestPoints: contestPoints,
             totalPoints: totalPoints
           });
+          await updateDoc(participantRef, {
+            status: 'eliminated',
+            points: contestPoints,
+            correctAnswers: newUserAnswers.filter(Boolean).length,
+            totalAnswered: newUserAnswers.length,
+            completed50: newUserAnswers.length >= 50,
+            updatedAt: new Date().toISOString()
+          }).catch(console.warn);
         } catch (e) {
           console.error("User sync error:", e instanceof Error ? e.message : e);
         }
       }
       
+      setShowFeedback(null);
       setView('results');
       return;
     }
@@ -3666,6 +3832,7 @@ export default function App() {
       const nextIndex = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIndex);
       setShowFeedback(null);
+      setTimeLeft(5);
       
       if (isContestQuiz) {
         const newRound = nextIndex >= 25 ? 2 : 1;
@@ -3674,12 +3841,125 @@ export default function App() {
     } else if (isContestQuiz) {
       // Finished all 50 questions
       const today = new Date().toISOString().split('T')[0];
-      showNotification('مبروك! لقد أتممت المسابقة الأسبوعية بنجاح 🏆', 'success');
       setLastWeeklyContestDate(today);
+      
+      const correctCount = newUserAnswers.filter(Boolean).length;
+      let bonusSync: any = {
+        totalPoints: totalPoints,
+        contestPoints: contestPoints
+      };
+      if (correctCount >= 50) {
+        setScore(prev => prev + 100);
+        setTotalPoints(prev => prev + 100);
+        setContestPoints(prev => prev + 100);
+        showNotification('إنجاز مذهل! إجاباتك كلها صحيحة: +100 نقطة إضافية! 🏆🔥', 'success');
+        bonusSync = {
+          totalPoints: totalPoints + 100,
+          contestPoints: contestPoints + 100
+        };
+      } else {
+        showNotification('مبروك! لقد أتممت المسابقة الأسبوعية بنجاح 🏆', 'success');
+      }
+
       if (user) {
         const userRef = doc(db, 'users', user.uid);
-        await updateDoc(userRef, { lastWeeklyContestDate: today });
+        const participantRef = doc(db, 'contest_participants', user.uid);
+        try {
+          await updateDoc(userRef, {
+            ...bonusSync,
+            lastWeeklyContestDate: today
+          });
+          await updateDoc(participantRef, {
+            status: 'completed',
+            points: bonusSync.contestPoints ?? contestPoints,
+            correctAnswers: correctCount,
+            totalAnswered: newUserAnswers.length,
+            completed50: true,
+            updatedAt: new Date().toISOString()
+          }).catch(console.warn);
+        } catch (e) {
+          console.error("Contest completion sync error:", e);
+        }
       }
+      setShowFeedback(null);
+      setView('results');
+    } else if (isChallengeMode && activeChallenge) {
+      const isSender = activeChallenge.senderId === user?.uid;
+      const challengeRef = doc(db, 'challenges', activeChallenge.id);
+      
+      try {
+        if (activeChallenge.receiverId === 'bot_ai') {
+          const finalUserScore = (activeChallenge.senderScore || 0) + (isCorrect ? 1 : 0);
+          const botScore = activeChallenge.receiverScore || 0;
+          const userWon = finalUserScore > botScore;
+          const isTie = finalUserScore === botScore;
+          const winnerId = userWon ? (user?.uid || 'guest') : (isTie ? 'tie' : 'bot_ai');
+          const winnerName = userWon ? (user?.displayName || 'أنت') : (isTie ? 'تعادل' : 'المنافس الذكي 🤖');
+
+          await updateDoc(challengeRef, {
+            senderFinished: true,
+            receiverFinished: true,
+            senderScore: finalUserScore,
+            receiverScore: botScore,
+            receiverStarted: true,
+            status: 'completed',
+            winnerId,
+            winnerName
+          });
+
+          if (userWon && user) {
+            setTotalPoints(prev => prev + 25);
+            updateDoc(doc(db, 'users', user.uid), { totalPoints: increment(25) }).catch(console.error);
+          }
+
+          setActiveChallenge((prev: any) => prev ? {
+            ...prev,
+            senderFinished: true,
+            receiverFinished: true,
+            senderScore: finalUserScore,
+            receiverScore: botScore,
+            receiverStarted: true,
+            status: 'completed',
+            winnerId,
+            winnerName
+          } : prev);
+        } else {
+          if (isSender) {
+            await updateDoc(challengeRef, { 
+              senderFinished: true,
+              senderFinishedAt: new Date().toISOString()
+            });
+          } else {
+            await updateDoc(challengeRef, { 
+              receiverFinished: true,
+              receiverFinishedAt: new Date().toISOString()
+            });
+          }
+
+          const updatedSnap = await getDoc(challengeRef);
+          const updatedData = updatedSnap.data();
+          if (updatedData?.senderFinished && updatedData?.receiverFinished) {
+            const sScore = updatedData.senderScore || 0;
+            const rScore = updatedData.receiverScore || 0;
+            const winnerId = sScore > rScore ? updatedData.senderId : (rScore > sScore ? updatedData.receiverId : 'tie');
+            const winnerName = sScore > rScore ? updatedData.senderName : (rScore > sScore ? updatedData.receiverName : 'تعادل');
+
+            await updateDoc(challengeRef, { 
+              status: 'completed',
+              winnerId,
+              winnerName
+            });
+
+            if (winnerId === user?.uid && user) {
+              setTotalPoints(prev => prev + 25);
+              updateDoc(doc(db, 'users', user.uid), { totalPoints: increment(25) }).catch(console.error);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Challenge completion sync error:", e);
+      }
+      setShowFeedback(null);
       setView('results');
     } else if (!isChallengeMode && selectedSubject) {
       // Practice mode: seamless infinite continuation
@@ -3691,40 +3971,80 @@ export default function App() {
         selectedDifficulty || 'medium', 
         selectedTrack?.name || '', 
         10,
-        selectedSemester || undefined
+        selectedSemester || undefined,
+        selectedLessonTitle || undefined
       ).then(newQuestions => {
         if (newQuestions.length > 0) {
-          setDynamicQuestions(prev => ({
-            ...prev,
-            [key]: [...(prev[key] || []), ...newQuestions]
-          }));
-          setCurrentQuestionIndex(prev => prev + 1);
-          setShowFeedback(null);
-        } else {
-          setView('results');
+          const existingTexts = new Set(questions.map(q => cleanQuestionText(q.text)));
+          const nonDup = newQuestions.filter(q => !existingTexts.has(cleanQuestionText(q.text)));
+          if (nonDup.length > 0) {
+            const shuffledNew = shuffleAndBalanceQuestions(nonDup);
+            setSessionQuestions(prev => [...prev, ...shuffledNew]);
+            setDynamicQuestions(prev => ({
+              ...prev,
+              [key]: [...(prev[key] || []), ...nonDup]
+            }));
+            setCurrentQuestionIndex(prev => prev + 1);
+            setShowFeedback(null);
+            setTimeLeft(5);
+            return;
+          }
+        }
+        setShowFeedback(null);
+        setView('results');
+        if (currentMistakes.length > 0) {
+          setIsGeneratingPlan(true);
+          generateStudyPlan(selectedSubject.name, currentMistakes).then(plan => {
+            setStudyPlan(plan);
+          }).finally(() => {
+            setIsGeneratingPlan(false);
+          });
         }
       }).catch(() => {
+        setShowFeedback(null);
         setView('results');
       }).finally(() => {
         setIsLoadingQuestions(false);
       });
     } else {
+      setShowFeedback(null);
       setView('results');
     }
-  }, [currentQuestionIndex, questions.length, isContestQuiz, contestPoints, totalPoints, user, isChallengeMode, selectedSubject, selectedLevel, selectedYear, selectedDifficulty, selectedTrack, selectedSemester, key]);
+  }, [
+    currentQuestionIndex, 
+    questions, 
+    isContestQuiz, 
+    contestPoints, 
+    totalPoints, 
+    user, 
+    isChallengeMode, 
+    activeChallenge, 
+    selectedSubject, 
+    selectedLevel, 
+    selectedYear, 
+    selectedDifficulty, 
+    selectedTrack, 
+    selectedSemester, 
+    selectedLessonTitle, 
+    key
+  ]);
 
   const handleAnswerSelect = async (index: number) => {
     if (showFeedback) return;
 
-    const isCorrect = index === currentQuestion.correctAnswer;
+    // Snapshot target question immediately to guarantee answer and feedback integrity
+    const targetQ = currentQuestion;
+    if (!targetQ) return;
+
+    const isCorrect = index === targetQ.correctAnswer;
     const newUserAnswers = [...userAnswers, isCorrect];
-    setShowFeedback({ correct: isCorrect, answer: index });
+    setShowFeedback({ correct: isCorrect, answer: index, question: targetQ });
 
     if (index === -1 && isContestQuiz) {
       showNotification('انتهى الوقت! حاول أن تكون أسرع في السؤال القادم ⚡', 'info');
     }
     
-    // Reward for the answer
+    // Reward for the answer: +5 for correct, -10 for wrong answer
     if (isCorrect) {
       setScore(prev => prev + 5);
       setTotalPoints(prev => prev + 5);
@@ -3740,8 +4060,7 @@ export default function App() {
         }
       }
       
-      if (isChallengeMode && activeChallenge) {
-        // Update Firestore based on role
+      if (isChallengeMode && activeChallenge && user) {
         const isSender = activeChallenge.senderId === user.uid;
         const challengeRef = doc(db, 'challenges', activeChallenge.id);
         
@@ -3763,28 +4082,27 @@ export default function App() {
       setScore(prev => Math.max(0, prev - 10));
       setTotalPoints(prev => Math.max(0, prev - 10));
       setContestPoints(prev => Math.max(0, prev - 10));
-      // Record mistake
-      setMistakes(prev => [
-        ...prev, 
-        { 
-          question: currentQuestion.text, 
-          correctAnswer: currentQuestion.options[currentQuestion.correctAnswer], 
-          userAnswer: currentQuestion.options[index] 
-        }
-      ]);
     }
 
-    // Save answered question to daily tracking (localStorage and state) so it never repeats today
-    if (currentQuestion) {
-      saveDailyAnswered(currentQuestion.id, currentQuestion.text);
-      setDailyAnsweredSet(prev => {
-        const nextIds = new Set(prev.ids);
-        const nextTexts = new Set(prev.texts);
-        nextIds.add(currentQuestion.id);
-        nextTexts.add(cleanQuestionText(currentQuestion.text));
-        return { ids: nextIds, texts: nextTexts };
-      });
+    const currentMistakeObj = !isCorrect ? { 
+      question: targetQ.text, 
+      correctAnswer: targetQ.options[targetQ.correctAnswer], 
+      userAnswer: index >= 0 ? targetQ.options[index] : 'انتهى الوقت'
+    } : null;
+
+    if (currentMistakeObj) {
+      setMistakes(prev => [...prev, currentMistakeObj]);
     }
+
+    // Save answered question to daily tracking (localStorage and state) so it never repeats
+    saveDailyAnswered(targetQ.id, targetQ.text);
+    setDailyAnsweredSet(prev => {
+      const nextIds = new Set(prev.ids);
+      const nextTexts = new Set(prev.texts);
+      nextIds.add(targetQ.id);
+      nextTexts.add(cleanQuestionText(targetQ.text));
+      return { ids: nextIds, texts: nextTexts };
+    });
 
     // Sync contest points and seen questions live
     if (user) {
@@ -3792,21 +4110,19 @@ export default function App() {
       const pointsChange = isCorrect ? 5 : -10;
       const today = getTodayDateString();
       
-      // Keep track of seen questions to avoid repeats as requested by user
-      const updatedSeenIds = [...seenQuestionIds, currentQuestion.id].slice(-500);
+      const updatedSeenIds = [...seenQuestionIds, targetQ.id].slice(-1000);
       setSeenQuestionIds(updatedSeenIds);
 
       const updateData: any = {
-        totalPoints: increment(pointsChange),
         seenQuestionIds: updatedSeenIds,
-        seenQuestionsDate: today
+        seenQuestionsDate: today,
+        totalPoints: increment(pointsChange)
       };
       
       if (isContestQuiz) {
         updateData.contestPoints = increment(pointsChange);
         const correctCount = newUserAnswers.filter(Boolean).length;
         const answeredCount = newUserAnswers.length;
-        // Live sync to contest_participants collection for immediate leaderboard updates
         const participantRef = doc(db, 'contest_participants', user.uid);
         updateDoc(participantRef, {
           points: increment(pointsChange),
@@ -3820,11 +4136,10 @@ export default function App() {
       updateDoc(userRef, updateData).catch(e => console.error("Live sync error:", e instanceof Error ? e.message : e));
     }
 
-    // Check if we need to fetch more questions for "infinite" experience
+    // Refill background questions in practice mode if getting close to the end
     const remainingQuestions = questions.length - currentQuestionIndex - 1;
     if (remainingQuestions <= 2 && !isLoadingQuestions) {
       if (view === 'quiz' && selectedLevel && selectedYear && selectedSubject) {
-        // Trigger background fetch
         const trackName = selectedTrack?.name || '';
         generateQuestions(
           selectedLevel.name, 
@@ -3833,290 +4148,32 @@ export default function App() {
           selectedDifficulty || 'medium', 
           trackName, 
           10,
-          selectedSemester || undefined
+          selectedSemester || undefined,
+          selectedLessonTitle || undefined
         ).then(newQuestions => {
           if (newQuestions.length > 0) {
-            const existingTexts = new Set((dynamicQuestions[key] || []).map(q => q.text.trim()));
-            const filteredNew = newQuestions.filter(q => !existingTexts.has(q.text.trim()));
-            if (filteredNew.length > 0) {
+            const existingTexts = new Set(questions.map(q => cleanQuestionText(q.text)));
+            const nonDup = newQuestions.filter(q => !existingTexts.has(cleanQuestionText(q.text)));
+            if (nonDup.length > 0) {
+              const shuffledNew = shuffleAndBalanceQuestions(nonDup);
+              setSessionQuestions(prev => [...prev, ...shuffledNew]);
               setDynamicQuestions(prev => ({
                 ...prev,
-                [key]: [...(prev[key] || []), ...filteredNew]
+                [key]: [...(prev[key] || []), ...nonDup]
               }));
             }
           }
         }).catch(e => console.error("Background refill error:", e instanceof Error ? e.message : e));
-      } else if (isContestQuiz) {
-        generateContestQuestions(selectedLevel?.name || 'الكل', contestRound, 10)
-          .then(newQuestions => {
-            if (newQuestions.length > 0) {
-              const existingTexts = new Set((dynamicQuestions[key] || []).map(q => q.text.trim()));
-              const filteredNew = newQuestions.filter(q => !existingTexts.has(q.text.trim()));
-              if (filteredNew.length > 0) {
-                setDynamicQuestions(prev => ({
-                  ...prev,
-                  [key]: [...(prev[key] || []), ...filteredNew]
-                }));
-              }
-            }
-          })
-          .catch(e => console.error("Contest background refill error:", e instanceof Error ? e.message : e));
       }
     }
 
     setUserAnswers(newUserAnswers);
 
-    const transitionDelay = 5000; // All transitions are now 5 seconds as requested
+    const transitionDelay = 5000;
+    const updatedMistakesList = currentMistakeObj ? [...mistakes, currentMistakeObj] : mistakes;
 
     transitionTimeoutRef.current = setTimeout(async () => {
-      // Check for elimination in contest (2 mistakes = out)
-      if (isContestQuiz && !isCorrect && mistakes.length + 1 >= 2) {
-        const today = new Date().toISOString().split('T')[0];
-        showNotification('لقد تم إقصاؤك من المسابقة! (الخطأ الثاني)', 'info');
-        setLastWeeklyContestDate(today);
-        
-        // Sync to database
-        const userRef = doc(db, 'users', user.uid);
-        const participantRef = doc(db, 'contest_participants', user.uid);
-        try {
-          await updateDoc(userRef, {
-            lastWeeklyContestDate: today,
-            contestPoints: contestPoints, // Sync current session score to total
-            totalPoints: totalPoints
-          });
-          await updateDoc(participantRef, {
-            status: 'eliminated',
-            points: contestPoints,
-            correctAnswers: newUserAnswers.filter(Boolean).length,
-            totalAnswered: newUserAnswers.length,
-            completed50: newUserAnswers.length >= 50,
-            updatedAt: new Date().toISOString()
-          }).catch(console.warn);
-        } catch (e) {
-          handleFirestoreError(e, OperationType.UPDATE, `users/${user.uid}`);
-        }
-        
-        setView('results');
-        return;
-      }
-
-      if (currentQuestionIndex < questions.length - 1) {
-        const nextIndex = currentQuestionIndex + 1;
-        setCurrentQuestionIndex(nextIndex);
-        setShowFeedback(null);
-        
-        if (isContestQuiz) {
-          let newRound = 1;
-          if (nextIndex >= 45) newRound = 4;
-          else if (nextIndex >= 30) newRound = 3;
-          else if (nextIndex >= 15) newRound = 2;
-          
-          if (newRound !== contestRound) {
-            setContestRound(newRound);
-            showNotification(`مرحلة جديدة: ${
-              newRound === 2 ? 'المنهاج الدراسي' : 
-              newRound === 3 ? 'تحدي السرعة ⚡' : 
-              newRound === 4 ? 'التحدي المصيري 🔥' : 'ثقافة عامة'
-            }`, 'info');
-          }
-          // Speed round and regular rounds all now 5 seconds
-          setTimeLeft(5);
-        } else {
-          setTimeLeft(5);
-        }
-      } else if (!isContestQuiz && !isChallengeMode) {
-        // Infinite Quiz logic for practice mode - try to fetch more fresh questions
-        setIsLoadingQuestions(true);
-        try {
-          const newQuestions = await generateQuestions(
-            selectedLevel?.name || '', 
-            selectedYear?.name || '', 
-            selectedSubject?.name || '', 
-            selectedDifficulty, 
-            selectedTrack?.name || '', 
-            10,
-            selectedSemester || undefined
-          );
-          
-          if (newQuestions.length > 0) {
-            setDynamicQuestions(prev => ({
-              ...prev,
-              [key]: [...(prev[key] || []), ...newQuestions]
-            }));
-            setCurrentQuestionIndex(prev => prev + 1);
-            setShowFeedback(null);
-            setTimeLeft(5);
-          } else {
-            // If no new questions from AI (quota/error), loop back for review
-            showNotification('أكملت الجولة! ستبدأ جولة مراجعة لترسيخ ما تعلمته.', 'info');
-            setCurrentQuestionIndex(0);
-            setShowFeedback(null);
-          }
-        } catch (e: any) {
-          // If AI fails/quota, just loop the existing ones
-          showNotification('ستبدأ جولة مراجعة سريعة للأسئلة السابقة.', 'info');
-          setCurrentQuestionIndex(0);
-          setShowFeedback(null);
-        } finally {
-          setIsLoadingQuestions(false);
-        }
-      } else {
-        // Round or Quiz finished (Contest or Challenge)
-        const isLastQuestion = currentQuestionIndex >= questions.length - 1;
-        const targetContestQuestions = 50;
-
-        if (isContestQuiz && currentQuestionIndex + 1 < targetContestQuestions && questions.length > currentQuestionIndex + 1) {
-          // Contest continues until 50 questions or we run out (unlikely with dynamic pre-fetch)
-          setCurrentQuestionIndex(prev => prev + 1);
-          setShowFeedback(null);
-          setTimeLeft(5);
-        } else if (isContestQuiz && contestRound < 4 && currentQuestionIndex + 1 < targetContestQuestions) {
-          // If we reach the end of a "round" batch but still under 50, increment round to fetch more
-          const nextRound = contestRound + 1;
-          setContestRound(nextRound);
-          setCurrentQuestionIndex(0); // If rounds represent different sets, we might reset index OR keep going
-          // However, given the prompt, let's make it simpler: single flow of 50.
-          // If the user wants 50, we just keep going.
-          setCurrentQuestionIndex(prev => prev + 1);
-          setShowFeedback(null);
-          setTimeLeft(5);
-        } else {
-          // Quiz completely finished
-          if (isContestQuiz) {
-            const today = new Date().toISOString().split('T')[0];
-            setLastWeeklyContestDate(today);
-            
-            // Check for perfect score bonus
-            const correctCount = newUserAnswers.filter(a => a).length;
-            let bonusSync = {};
-            if (correctCount >= 50) {
-              setScore(prev => prev + 100);
-              setTotalPoints(prev => prev + 100);
-              setContestPoints(prev => prev + 100);
-              showNotification('إنجاز مذهل! إجاباتك كلها صحيحة: +100 نقطة إضافية! 🏆🔥', 'success');
-              bonusSync = {
-                totalPoints: totalPoints + 100,
-                contestPoints: contestPoints + 100
-              };
-            } else {
-              bonusSync = {
-                totalPoints: totalPoints,
-                contestPoints: contestPoints
-              };
-            }
-
-            // Sync to firebase immediately
-            const userRef = doc(db, 'users', user.uid);
-            const participantRef = doc(db, 'contest_participants', user.uid);
-            try {
-              await updateDoc(userRef, {
-                ...bonusSync,
-                lastWeeklyContestDate: today
-              });
-              await updateDoc(participantRef, {
-                status: 'completed',
-                points: (bonusSync as any).contestPoints ?? contestPoints,
-                correctAnswers: correctCount,
-                totalAnswered: newUserAnswers.length,
-                completed50: true,
-                updatedAt: new Date().toISOString()
-              }).catch(console.warn);
-            } catch (e) {
-              handleFirestoreError(e, OperationType.UPDATE, `users/${user.uid}`);
-            }
-          }
-          setView('results');
-          
-          if (isChallengeMode && activeChallenge) {
-            const isSender = activeChallenge.senderId === user.uid;
-            const challengeRef = doc(db, 'challenges', activeChallenge.id);
-            
-            try {
-              if (activeChallenge.receiverId === 'bot_ai') {
-                const finalUserScore = (activeChallenge.senderScore || 0) + (isCorrect ? 1 : 0);
-                const botScore = activeChallenge.receiverScore || 0;
-                const userWon = finalUserScore > botScore;
-                const isTie = finalUserScore === botScore;
-                const winnerId = userWon ? user.uid : (isTie ? 'tie' : 'bot_ai');
-                const winnerName = userWon ? (user.displayName || 'أنت') : (isTie ? 'تعادل' : 'المنافس الذكي 🤖');
-
-                await updateDoc(challengeRef, {
-                  senderFinished: true,
-                  receiverFinished: true,
-                  senderScore: finalUserScore,
-                  receiverScore: botScore,
-                  receiverStarted: true,
-                  status: 'completed',
-                  winnerId,
-                  winnerName
-                });
-
-                if (userWon) {
-                  setTotalPoints(prev => prev + 25);
-                  updateDoc(doc(db, 'users', user.uid), { totalPoints: increment(25) }).catch(console.error);
-                }
-
-                setActiveChallenge((prev: any) => prev ? {
-                  ...prev,
-                  senderFinished: true,
-                  receiverFinished: true,
-                  senderScore: finalUserScore,
-                  receiverScore: botScore,
-                  receiverStarted: true,
-                  status: 'completed',
-                  winnerId,
-                  winnerName
-                } : prev);
-              } else {
-                if (isSender) {
-                  await updateDoc(challengeRef, { 
-                    senderFinished: true,
-                    senderFinishedAt: new Date().toISOString()
-                  });
-                } else {
-                  await updateDoc(challengeRef, { 
-                    receiverFinished: true,
-                    receiverFinishedAt: new Date().toISOString()
-                  });
-                }
-
-                // If both finished, mark as completed and determine winner
-                const updatedSnap = await getDoc(challengeRef);
-                const updatedData = updatedSnap.data();
-                if (updatedData?.senderFinished && updatedData?.receiverFinished) {
-                  const sScore = updatedData.senderScore || 0;
-                  const rScore = updatedData.receiverScore || 0;
-                  const winnerId = sScore > rScore ? updatedData.senderId : (rScore > sScore ? updatedData.receiverId : 'tie');
-                  const winnerName = sScore > rScore ? updatedData.senderName : (rScore > sScore ? updatedData.receiverName : 'تعادل');
-
-                  await updateDoc(challengeRef, { 
-                    status: 'completed',
-                    winnerId,
-                    winnerName
-                  });
-
-                  if (winnerId === user.uid) {
-                    setTotalPoints(prev => prev + 25);
-                    updateDoc(doc(db, 'users', user.uid), { totalPoints: increment(25) }).catch(console.error);
-                  }
-                }
-              }
-            } catch (e) {
-              handleFirestoreError(e, OperationType.WRITE, `challenges/${activeChallenge.id}`);
-            }
-          }
-
-          if (mistakes.length > 0 || !isCorrect) {
-            setIsGeneratingPlan(true);
-            const finalMistakes = !isCorrect 
-              ? [...mistakes, { question: currentQuestion.text, correctAnswer: currentQuestion.options[currentQuestion.correctAnswer], userAnswer: currentQuestion.options[index] }]
-              : mistakes;
-            const plan = await generateStudyPlan(selectedSubject?.name || 'المادة', finalMistakes);
-            setStudyPlan(plan);
-            setIsGeneratingPlan(false);
-          }
-        }
-      }
+      await moveToNextQuestion(isCorrect, newUserAnswers, updatedMistakesList);
     }, transitionDelay);
   };
 
@@ -4313,7 +4370,7 @@ export default function App() {
                 <span className="text-sm font-black text-slate-900">Apprendre DZ</span>
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">
-                    {isPremium || totalPoints >= 999999 ? 'نقاط لا نهائية ∞' : `${totalPoints} نقطة`}
+                    {`${totalPoints} نقطة`}
                   </span>
                   <div className={`flex items-center gap-1 ${currentLevelInfo.bg} px-2 py-0.5 rounded-full border ${currentLevelInfo.border}`}>
                     <Trophy size={10} className={currentLevelInfo.color} />
@@ -4753,7 +4810,7 @@ export default function App() {
                           <div className="flex items-center gap-4">
                             <div className="text-left">
                               <p className="text-sm font-black text-blue-600 mb-1">
-                                {u.isPremium || u.totalPoints >= 999999 ? 'نقاط لا نهائية ∞' : `${u.totalPoints || 0} نقطة`}
+                                {`${u.totalPoints || 0} نقطة`}
                               </p>
                               <button 
                                 onClick={() => toggleUserPremium(u.id, u.isPremium)}
@@ -4763,7 +4820,7 @@ export default function App() {
                                     : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
                                 }`}
                               >
-                                {u.isPremium ? 'خدمات فعالة ✔ (نقاط ∞)' : 'تفعيل الخدمات'}
+                                {u.isPremium ? 'مشترك بريميوم ⭐' : 'تفعيل الاشتراك'}
                               </button>
                             </div>
                           </div>
@@ -5232,9 +5289,67 @@ export default function App() {
                   <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
                     <p className="text-[10px] font-black text-slate-400 uppercase mb-1">نوع الحساب</p>
                     <p className={`font-black ${isPremium ? 'text-amber-600' : 'text-slate-900'}`}>
-                      {isPremium ? 'طالب بريميوم (نقاط لا نهائية ∞)' : 'طالب عادي'}
+                      {isPremium ? 'طالب بريميوم (عضوية مميزة ⭐)' : 'طالب عادي'}
                     </p>
                   </div>
+                </div>
+
+                {/* Subscription Service Box */}
+                <div className={`mt-4 p-5 rounded-3xl border-2 transition-all text-right ${
+                  isPremium 
+                    ? 'bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100/60 border-amber-300 shadow-lg shadow-amber-100/50' 
+                    : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-white border-blue-200 shadow-md'
+                }`}>
+                  <div className="flex items-center justify-between flex-row-reverse mb-3">
+                    <div className="flex items-center gap-2 flex-row-reverse">
+                      <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${
+                        isPremium ? 'bg-amber-400 text-amber-950 shadow-md' : 'bg-blue-600 text-white shadow-md'
+                      }`}>
+                        {isPremium ? <Crown size={22} /> : <Sparkles size={22} />}
+                      </div>
+                      <div className="text-right">
+                        <h4 className="font-black text-slate-900 text-sm">
+                          {isPremium ? 'خدمة الاشتراك المميز فعالة ⭐' : 'خدمة الاشتراك في المنصة'}
+                        </h4>
+                        <p className="text-[11px] font-bold text-slate-500">
+                          {isPremium ? 'عضوية بريميوم نشطة' : 'اشترك للوصول الكامل لكافة الخدمات والميزات'}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-black ${
+                      isPremium ? 'bg-amber-200 text-amber-900 border border-amber-300' : 'bg-blue-100 text-blue-700'
+                    }`}>
+                      {isPremium ? 'بريميوم ⭐' : 'طالب عادي'}
+                    </span>
+                  </div>
+
+                  <p className="text-xs text-slate-600 leading-relaxed font-bold mb-4">
+                    {isPremium 
+                      ? 'بصفتك مشتركاً، حسابك يتمتع بالوصول لكافة المواد والاختبارات المتقدمة. تجمع نقاطك دائماً بإجاباتك الصحيحة عن الأسئلة (+5 للصحيحة و -10 للخاطئة). وعند إلغاء الاشتراك تصبح نقاطك 0.'
+                      : 'اشترك للوصول لكافة المحتويات والميزات التعليمية المتقدمة. تجمع نقاطك الحقيقية عن طريق حل التمارين والأسئلة. وعند إلغاء الاشتراك تصبح نقاطك 0.'}
+                  </p>
+
+                  {isPremium ? (
+                    <button
+                      onClick={() => {
+                        if (window.confirm('هل أنت متأكد من رغبتك في إلغاء الاشتراك؟ سيتم تصفير رصيد نقاطك إلى 0 فوراً.')) {
+                          handleCancelSubscription();
+                        }
+                      }}
+                      className="w-full py-3 bg-white hover:bg-rose-50 text-rose-600 border-2 border-rose-200 hover:border-rose-400 rounded-2xl font-black text-xs transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <XCircle size={16} />
+                      <span>إلغاء الاشتراك (تصفير النقاط إلى 0)</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleSubscribe}
+                      className="w-full py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-2xl font-black text-xs transition-all shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Sparkles size={16} />
+                      <span>تفعيل الاشتراك الآن ⭐</span>
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-3 pt-6">
@@ -7405,11 +7520,11 @@ export default function App() {
                     <Zap size={80} />
                   </div>
                   <div className="p-4 rounded-2xl w-fit bg-white/20 text-white mb-auto shadow-lg backdrop-blur-md border border-white/30">
-                    <InfinityIcon size={28} />
+                    <Sparkles size={28} />
                   </div>
                   <div className="relative z-10">
-                    <span className="text-xl font-black text-white block">وضع الأسئلة اللانهائية ♾️</span>
-                    <p className="text-[10px] text-purple-100 font-bold uppercase tracking-wider">تحدَّ نفسك بلا حدود وبدون توقف</p>
+                    <span className="text-xl font-black text-white block">وضع التدريب المستمر ⚡</span>
+                    <p className="text-[10px] text-purple-100 font-bold uppercase tracking-wider">تدرب واختبر معلوماتك واجمع النقاط</p>
                   </div>
                 </motion.button>
               </div>
@@ -7799,18 +7914,19 @@ export default function App() {
                     const isCustom = (lesson as any).isCustom;
                     const sem = (lesson as any).semester;
                     return (
-                      <motion.button
+                      <motion.div
                         key={idx}
-                        whileHover={{ scale: 1.01, x: -4 }}
-                        whileTap={{ scale: 0.99 }}
-                        onClick={() => handleLessonSelect(lesson.title, lesson)}
-                        className={`flex items-center justify-between p-5 sm:p-6 bg-white rounded-2xl shadow-sm border-2 transition-all text-right cursor-pointer group ${
+                        whileHover={{ scale: 1.01, y: -2 }}
+                        className={`flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-4 sm:p-5 bg-white rounded-2xl shadow-sm border-2 transition-all text-right gap-4 ${
                           isCustom
                             ? 'border-emerald-200 hover:border-emerald-400 bg-emerald-50/20'
                             : 'border-slate-100 hover:border-blue-200'
                         }`}
                       >
-                        <div className="flex items-center gap-4 flex-1">
+                        <div 
+                          onClick={() => handleLessonSelect(lesson.title, lesson)}
+                          className="flex items-center gap-4 flex-1 cursor-pointer group"
+                        >
                           <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 ${
                             isCustom
                               ? 'bg-emerald-100 text-emerald-700'
@@ -7819,7 +7935,7 @@ export default function App() {
                             {idx + 1}
                           </div>
 
-                          <div className="space-y-1">
+                          <div className="space-y-1 flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-base sm:text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
                                 {lesson.title}
@@ -7846,8 +7962,27 @@ export default function App() {
                           </div>
                         </div>
 
-                        <ChevronLeft size={20} className="text-slate-300 group-hover:text-blue-500 shrink-0 mr-2" />
-                      </motion.button>
+                        <div className="flex items-center gap-2 justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => handleStartLessonQuiz(lesson.title)}
+                            className="px-3.5 py-2 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white rounded-xl text-xs font-black transition-colors flex items-center gap-1.5 shadow-sm border border-emerald-200 hover:border-emerald-600 cursor-pointer"
+                            title="اختبار مباشر خاص بهذا الدرس"
+                          >
+                            <CheckCircle2 size={14} />
+                            <span>اختبر فهمك 🎯</span>
+                          </motion.button>
+
+                          <button 
+                            onClick={() => handleLessonSelect(lesson.title, lesson)}
+                            className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all cursor-pointer"
+                            title="عرض الدرس والشرح"
+                          >
+                            <ChevronLeft size={20} />
+                          </button>
+                        </div>
+                      </motion.div>
                     );
                   })}
                 </div>
@@ -8101,7 +8236,7 @@ export default function App() {
           </div>
         )}
         <div className="flex justify-between items-center text-xs font-bold text-slate-400">
-          <span>السؤال {currentQuestionIndex + 1} {isContestQuiz ? `من 50` : isChallengeMode ? `من ${questions.length} (مبارزة ⚔️)` : ' (وضع لانهائي ♾️)'}</span>
+          <span>السؤال {currentQuestionIndex + 1} {isContestQuiz ? `من 50` : isChallengeMode ? `من ${questions.length} (مبارزة ⚔️)` : ' (تدريب مستمر)'}</span>
           {!isContestQuiz && !isChallengeMode && (
             <button 
               onClick={() => setView('results')}
@@ -8571,7 +8706,7 @@ export default function App() {
                     className="w-full py-5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-3xl font-black text-xl shadow-xl shadow-emerald-200 hover:from-emerald-600 hover:to-teal-700 transition-all flex items-center justify-center gap-3"
                   >
                     <Sparkles size={24} />
-                    <span>جولة أسئلة جديدة غير مكررة (تدريب لانهائي ♾️)</span>
+                    <span>جولة أسئلة جديدة غير مكررة ⚡</span>
                   </motion.button>
                 )}
                 <motion.button
@@ -8659,18 +8794,31 @@ export default function App() {
                           </motion.button>
                         )}
 
+                        {view === 'lessonContent' && selectedLessonTitle && (
+                          <motion.button
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => handleStartLessonQuiz(selectedLessonTitle)}
+                            className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
+                          >
+                            <CheckCircle2 size={16} />
+                            <span>اختبر فهمك في هذا الدرس تحديداً 🎯</span>
+                          </motion.button>
+                        )}
+
                         <motion.button
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           onClick={() => {
                             if (selectedSubject) {
+                              setSelectedLessonTitle('');
                               setView('semester');
                             }
                           }}
-                          className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-xs flex items-center gap-2 shadow-md shadow-emerald-500/20 transition-all"
+                          className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer"
                         >
-                          <CheckCircle2 size={16} />
-                          <span>اختبر فهمك في هذه المادة 📝</span>
+                          <BookOpen size={16} />
+                          <span>اختبار عام شامل للمادة 📝</span>
                         </motion.button>
 
                         {view === 'lessonContent' && (
@@ -8763,18 +8911,30 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-8 rounded-[3rem] text-white shadow-xl relative overflow-hidden">
+              <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-indigo-800 p-8 rounded-[3rem] text-white shadow-xl relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-8 text-white/5">
                   <Smile size={120} />
                 </div>
-                <div className="relative z-10 space-y-3">
-                  <h3 className="text-2xl font-black">شراء وتعديل الصور الرمزية</h3>
-                  <p className="text-blue-100 font-bold text-sm">اجعل حسابك مميزاً في قائمة الصدارة والمسابقات من خلال تخصيص مظهرك بالنقاط الحاصل عليها!</p>
-                  <div className="flex items-center gap-2 justify-end text-yellow-300 font-black pt-2">
-                    <span>نقاطك الحالية:</span>
-                    <span className="bg-white/20 px-3 py-1 rounded-full text-white text-base font-black">
-                      {((user && isUserAdmin(user.email, userRole)) || isPremium || totalPoints >= 999999) ? '∞' : (totalPoints || 0)} 🏆
+                <div className="relative z-10 space-y-3 text-right">
+                  <div className="flex items-center justify-between flex-row-reverse">
+                    <h3 className="text-2xl font-black">شراء الصور الرمزية بالنقاط 💎</h3>
+                    <span className="px-3 py-1 bg-white/20 rounded-full text-xs font-black text-amber-200">
+                      +5 نقاط لكل إجابة صحيحة
                     </span>
+                  </div>
+                  <p className="text-blue-100 font-bold text-sm leading-relaxed">
+                    النقاط التي تشتري بها الصور الرمزية هنا هي نفسها النقاط التي تجمعها من حل الأسئلة والاختبارات (+5 نقاط عند الإجابة الصحيحة و-10 عند الإجابة الخاطئة).
+                  </p>
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/20">
+                    <span className="text-xs text-blue-200 font-bold">
+                      كلما أجبت عن أسئلة واختبارات أكثر، جمعت نقاطاً أكثر لشراء صورك المفضلة!
+                    </span>
+                    <div className="flex items-center gap-2 text-yellow-300 font-black">
+                      <span className="text-sm">رصيدك المجمع من الأسئلة:</span>
+                      <span className="bg-white/25 px-4 py-1.5 rounded-full text-white text-base font-black shadow-inner">
+                        {`${totalPoints || 0} نقطة`} 🏆
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -8782,36 +8942,43 @@ export default function App() {
               {/* Avatar Store Section */}
               <div className="space-y-6">
                 <div className="flex items-center justify-between flex-row-reverse px-2">
-                   <h3 className="text-xl font-black text-slate-900">الصور الشخصية المتوفرة (Avatars)</h3>
-                   <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-black">شراء بالنقاط 💎</span>
+                   <h3 className="text-xl font-black text-slate-900">الصور الشخصية المتوفرة ({AVATARS.length} صورة)</h3>
+                   <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-black">
+                     شراء بنقاط الأسئلة 💎
+                   </span>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                   {AVATARS.map((avatar) => {
                     const isBought = unlockedAvatars.includes(avatar.id);
-                    const isPremium = avatar.price >= 5000;
+                    const isEliteAvatar = avatar.price >= 250;
+                    const canAfford = (totalPoints || 0) >= avatar.price;
                     return (
                       <div 
                         key={avatar.id}
-                        className={`bg-white p-4 rounded-[2rem] border-2 ${isPremium ? 'border-yellow-400 bg-yellow-50/30 shadow-yellow-100' : 'border-slate-100'} shadow-sm space-y-3 text-center group transition-all hover:shadow-md`}
+                        className={`bg-white p-4 rounded-[2rem] border-2 ${isEliteAvatar ? 'border-amber-300 bg-amber-50/20 shadow-amber-100/50' : 'border-slate-100'} shadow-sm space-y-3 text-center group transition-all hover:shadow-md`}
                       >
-                        <div className={`w-20 h-20 ${isPremium ? 'bg-yellow-100/50' : 'bg-slate-50'} rounded-2xl flex items-center justify-center mx-auto overflow-hidden border-2 ${isPremium ? 'border-yellow-200' : 'border-slate-50'} group-hover:border-blue-500 transition-all`}>
+                        <div className={`w-20 h-20 ${isEliteAvatar ? 'bg-amber-100/50' : 'bg-slate-50'} rounded-2xl flex items-center justify-center mx-auto overflow-hidden border-2 ${isEliteAvatar ? 'border-amber-200' : 'border-slate-100'} group-hover:border-blue-500 transition-all`}>
                           <img src={avatar.url} alt={avatar.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         </div>
                         <div>
-                          <h4 className={`font-black text-xs ${isPremium ? 'text-yellow-700' : 'text-slate-800'} line-clamp-1`}>{avatar.name}</h4>
+                          <h4 className={`font-black text-xs ${isEliteAvatar ? 'text-amber-800' : 'text-slate-800'} line-clamp-1`}>{avatar.name}</h4>
                           <button
-                            disabled={isBought}
+                            disabled={isBought || !canAfford}
                             onClick={() => handleBuyAvatar(avatar.id)}
-                            className={`mt-3 w-full py-2.5 rounded-xl text-xs font-black transition-all ${
+                            className={`mt-3 w-full py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
                               isBought 
-                              ? 'bg-emerald-50 text-emerald-600' 
-                              : isPremium
-                                ? 'bg-gradient-to-r from-yellow-500 to-amber-600 text-white hover:scale-105 shadow-md shadow-yellow-105'
-                                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-105'
+                              ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-default' 
+                              : canAfford
+                                ? isEliteAvatar
+                                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:scale-105 shadow-md shadow-amber-500/20'
+                                  : 'bg-blue-600 text-white hover:bg-blue-700 shadow-md shadow-blue-500/20'
+                                : 'bg-slate-100 text-slate-400 hover:bg-slate-200 cursor-not-allowed'
                             }`}
                           >
-                            {isBought ? 'تم الشراء' : `شراء (${avatar.price}ن)`}
+                            {isBought 
+                              ? 'تم الشراء ✔' 
+                              : `شراء (${avatar.price} نقطة)`}
                           </button>
                         </div>
                       </div>

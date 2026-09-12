@@ -103,25 +103,40 @@ export async function generateQuestions(
   difficulty: Difficulty = 'medium',
   track?: string,
   count: number = 10,
-  semester?: number
+  semester?: number,
+  lessonTitle?: string,
+  forceFresh?: boolean
 ): Promise<Question[]> {
   const normalizedSubject = normalizeSubject(subject);
-  const cacheKey = `${level}_${year}_${normalizedSubject}_${difficulty}_${track || ''}_${semester || ''}_${count}`;
-  if (questionsCache.has(cacheKey)) {
+  const { levelId, yearId } = deriveIdsFromNames(level, year);
+  const cacheKey = `${levelId}_${yearId}_${normalizedSubject}_${difficulty}_${track || ''}_${semester || ''}_${lessonTitle || 'all'}_${count}`;
+  if (!forceFresh && questionsCache.has(cacheKey)) {
     const cached = questionsCache.get(cacheKey)!;
     if (cached && cached.length >= count) {
       return cached.slice(0, count);
     }
   }
 
-  const { levelId, yearId } = deriveIdsFromNames(level, year);
-  const fallback = getFallbackQuestions(normalizedSubject, count, difficulty, levelId, yearId, track);
+  const fallback = getFallbackQuestions(normalizedSubject, count, difficulty, levelId, yearId, track, lessonTitle);
 
   try {
     const res = await fetchWithTimeout("/api/generate-questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ level, year, subject: normalizedSubject, difficulty, track, count, semester })
+      body: JSON.stringify({ 
+        level, 
+        year, 
+        subject: normalizedSubject, 
+        difficulty, 
+        track, 
+        count, 
+        semester, 
+        lessonTitle, 
+        forceFresh,
+        levelId,
+        yearId,
+        trackId: track
+      })
     }, 15000);
 
     if (res.ok) {

@@ -31,7 +31,12 @@ export function shuffleAndBalanceQuestions<T extends Question>(questions: T[]): 
       return q;
     }
 
-    const correctText = q.options[q.correctAnswer];
+    let correctIdx = typeof q.correctAnswer === 'number' ? q.correctAnswer : parseInt(q.correctAnswer as any, 10);
+    if (isNaN(correctIdx) || correctIdx < 0 || correctIdx >= q.options.length) {
+      correctIdx = 0;
+    }
+
+    const correctText = q.options[correctIdx];
     // Guard against malformed questions where correctAnswer index is out of bounds
     if (correctText === undefined) {
       return q;
@@ -53,7 +58,7 @@ export function shuffleAndBalanceQuestions<T extends Question>(questions: T[]): 
     prevCorrectIndex = targetCorrectIndex;
 
     // Distractors (the wrong options)
-    const wrongOptions = originalOptions.filter((_, i) => i !== q.correctAnswer);
+    const wrongOptions = originalOptions.filter((_, i) => i !== correctIdx);
 
     // Fisher-Yates shuffle for distractors
     for (let i = wrongOptions.length - 1; i > 0; i--) {
@@ -70,7 +75,7 @@ export function shuffleAndBalanceQuestions<T extends Question>(questions: T[]): 
       if (i === targetCorrectIndex) {
         newOptions.push(correctText);
       } else {
-        newOptions.push(wrongOptions[wrongIdx++] || "");
+        newOptions.push(wrongOptions[wrongIdx++] ?? "");
       }
     }
 
@@ -83,10 +88,12 @@ export function shuffleAndBalanceQuestions<T extends Question>(questions: T[]): 
 }
 
 /**
- * LocalStorage utilities to track questions answered TODAY
- * so that when the student studies today, they never see the same question again.
+ * LocalStorage utilities to track answered and seen questions
+ * both on a daily basis and continuously across sessions,
+ * ensuring questions do not appear repeatedly.
  */
 const STORAGE_PREFIX = "apprendre_dz_daily_answered_";
+const ALL_SEEN_STORAGE_KEY = "apprendre_dz_all_seen_questions_v1";
 
 export function getTodayDateString(): string {
   return new Date().toISOString().split("T")[0];
@@ -97,10 +104,11 @@ export function getDailyAnsweredSet(): { ids: Set<string>; texts: Set<string> } 
   const texts = new Set<string>();
 
   try {
+    // 1. Read today's answered questions
     const today = getTodayDateString();
-    const raw = localStorage.getItem(`${STORAGE_PREFIX}${today}`);
-    if (raw) {
-      const parsed = JSON.parse(raw);
+    const rawToday = localStorage.getItem(`${STORAGE_PREFIX}${today}`);
+    if (rawToday) {
+      const parsed = JSON.parse(rawToday);
       if (Array.isArray(parsed.ids)) {
         parsed.ids.forEach((id: string) => ids.add(id));
       }
@@ -109,7 +117,19 @@ export function getDailyAnsweredSet(): { ids: Set<string>; texts: Set<string> } 
       }
     }
 
-    // Clean up old days from previous dates to avoid filling localStorage
+    // 2. Read persistent rolling cross-session answered questions
+    const rawAll = localStorage.getItem(ALL_SEEN_STORAGE_KEY);
+    if (rawAll) {
+      const parsedAll = JSON.parse(rawAll);
+      if (Array.isArray(parsedAll.ids)) {
+        parsedAll.ids.forEach((id: string) => ids.add(id));
+      }
+      if (Array.isArray(parsedAll.texts)) {
+        parsedAll.texts.forEach((txt: string) => texts.add(txt));
+      }
+    }
+
+    // Clean up old daily keys from more than 7 days ago to avoid filling localStorage
     const keysToRemove: string[] = [];
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -119,7 +139,7 @@ export function getDailyAnsweredSet(): { ids: Set<string>; texts: Set<string> } 
     }
     keysToRemove.forEach((k) => localStorage.removeItem(k));
   } catch (e) {
-    console.warn("Could not read daily answered set from localStorage:", e);
+    console.warn("Could not read answered questions set from localStorage:", e);
   }
 
   return { ids, texts };
@@ -128,6 +148,9 @@ export function getDailyAnsweredSet(): { ids: Set<string>; texts: Set<string> } 
 export function saveDailyAnswered(id: string, text: string) {
   try {
     const today = getTodayDateString();
+    const clean = cleanQuestionText(text);
+
+    // 1. Update daily storage
     const key = `${STORAGE_PREFIX}${today}`;
     const raw = localStorage.getItem(key);
     let ids: string[] = [];
@@ -144,20 +167,37 @@ export function saveDailyAnswered(id: string, text: string) {
       }
     }
 
-    if (id && !ids.includes(id)) {
-      ids.push(id);
-    }
-    const clean = cleanQuestionText(text);
-    if (clean && !texts.includes(clean)) {
-      texts.push(clean);
-    }
+    if (id && !ids.includes(id)) ids.push(id);
+    if (clean && !texts.includes(clean)) texts.push(clean);
 
-    // Keep max 1000 items per day
-    if (ids.length > 1000) ids = ids.slice(-1000);
-    if (texts.length > 1000) texts = texts.slice(-1000);
+    if (ids.length > 2000) ids = ids.slice(-2000);
+    if (texts.length > 2000) texts = texts.slice(-2000);
 
     localStorage.setItem(key, JSON.stringify({ ids, texts }));
+
+    // 2. Update persistent rolling cross-session storage
+    const rawAll = localStorage.getItem(ALL_SEEN_STORAGE_KEY);
+    let allIds: string[] = [];
+    let allTexts: string[] = [];
+    if (rawAll) {
+      try {
+        const parsedAll = JSON.parse(rawAll);
+        allIds = Array.isArray(parsedAll.ids) ? parsedAll.ids : [];
+        allTexts = Array.isArray(parsedAll.texts) ? parsedAll.texts : [];
+      } catch {
+        allIds = [];
+        allTexts = [];
+      }
+    }
+
+    if (id && !allIds.includes(id)) allIds.push(id);
+    if (clean && !allTexts.includes(clean)) allTexts.push(clean);
+
+    if (allIds.length > 3000) allIds = allIds.slice(-3000);
+    if (allTexts.length > 3000) allTexts = allTexts.slice(-3000);
+
+    localStorage.setItem(ALL_SEEN_STORAGE_KEY, JSON.stringify({ ids: allIds, texts: allTexts }));
   } catch (e) {
-    console.warn("Could not save daily answered to localStorage:", e);
+    console.warn("Could not save answered question to localStorage:", e);
   }
 }
