@@ -3599,6 +3599,7 @@ export default function App() {
     setShowFeedback(null);
     setMistakes([]);
     setStudyPlan('');
+    setSessionQuestions([]);
     setView('quiz');
 
     try {
@@ -3733,6 +3734,7 @@ export default function App() {
     setMistakes([]);
     setStudyPlan('');
     setIsGeneratingPlan(false);
+    setSessionQuestions([]);
     setView('quiz');
     
     try {
@@ -3770,6 +3772,7 @@ export default function App() {
     setMistakes([]);
     setStudyPlan('');
     setIsGeneratingPlan(false);
+    setSessionQuestions([]);
     setView('quiz');
   };
 
@@ -4033,7 +4036,7 @@ export default function App() {
     if (showFeedback) return;
 
     // Snapshot target question immediately to guarantee answer and feedback integrity
-    const targetQ = currentQuestion;
+    const targetQ = activeDisplayQuestion || currentQuestion;
     if (!targetQ) return;
 
     const isCorrect = index === targetQ.correctAnswer;
@@ -4266,6 +4269,7 @@ export default function App() {
     setMistakes([]);
     setStudyPlan('');
     setIsGeneratingPlan(false);
+    setSessionQuestions([]);
     setView('quiz');
   };
 
@@ -8278,7 +8282,7 @@ export default function App() {
                         </div>
                       )}
 
-                      {Boolean((currentQuestion as any).authorEmail || currentQuestion.id?.startsWith('cq_')) && (
+                      {Boolean((activeDisplayQuestion as any)?.authorEmail || activeDisplayQuestion?.id?.startsWith('cq_')) && (
                         <div className="flex items-center gap-2">
                           <span className="px-3.5 py-1.5 rounded-full text-xs font-black bg-gradient-to-r from-amber-50 to-orange-50 text-amber-800 border border-amber-200 flex items-center gap-1.5 shadow-sm">
                             <Sparkles size={14} className="text-amber-600" />
@@ -8288,12 +8292,12 @@ export default function App() {
                       )}
 
                       <h4 className="text-2xl font-black text-slate-800 leading-snug">
-                        {currentQuestion.text}
+                        {activeDisplayQuestion.text}
                       </h4>
 
                       <div className="grid gap-3">
-                        {currentQuestion.options.map((option, idx) => {
-                          const isCorrect = currentQuestion.correctAnswer === idx;
+                        {activeDisplayQuestion.options.map((option, idx) => {
+                          const isCorrect = activeDisplayQuestion.correctAnswer === idx;
                           const isSelected = showFeedback?.answer === idx;
                           
                           let bgClass = "bg-slate-50 border-slate-100 hover:border-blue-200 hover:bg-white";
@@ -8347,11 +8351,11 @@ export default function App() {
                               {showFeedback.correct ? <Trophy size={18} /> : <XCircle size={18} />}
                             </div>
                             <div className="font-black">
-                              {showFeedback.correct ? 'إجابة رائعة! +5 نقاط' : `الجواب الصحيح: ${currentQuestion.options[currentQuestion.correctAnswer]} (-10 نقاط)`}
+                              {showFeedback.correct ? 'إجابة رائعة! +5 نقاط' : `الجواب الصحيح: ${activeDisplayQuestion.options[activeDisplayQuestion.correctAnswer]} (-10 نقاط)`}
                             </div>
                           </motion.div>
 
-                          {!showFeedback.correct && (currentQuestion.remedyPlan || currentQuestion.explanation) && (
+                          {!showFeedback.correct && (activeDisplayQuestion.remedyPlan || activeDisplayQuestion.explanation) && (
                             <motion.div
                               initial={{ opacity: 0, scale: 0.95 }}
                               animate={{ opacity: 1, scale: 1 }}
@@ -8374,7 +8378,7 @@ export default function App() {
 
                               <div className="bg-white/80 backdrop-blur-sm p-5 rounded-2xl border border-blue-100 mb-4 shadow-inner">
                                 <p className="text-slate-700 text-sm md:text-base leading-relaxed font-bold break-words whitespace-pre-wrap">
-                                  {currentQuestion.remedyPlan || currentQuestion.explanation || "تذكر دائماً مراجعة القواعد الأساسية لهذا المفهوم. الإخفاق هو طريق النجاح، استمر في المحاولة!"}
+                                  {activeDisplayQuestion.remedyPlan || activeDisplayQuestion.explanation || "تذكر دائماً مراجعة القواعد الأساسية لهذا المفهوم. الإخفاق هو طريق النجاح، استمر في المحاولة!"}
                                 </p>
                               </div>
 
@@ -8390,7 +8394,7 @@ export default function App() {
                                   transition={{ delay: 3 }}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    moveToNextQuestion(false, userAnswers, mistakes);
+                                    moveToNextQuestion(showFeedback?.correct ?? false, userAnswers, mistakes);
                                   }}
                                   className="text-white bg-blue-600 hover:bg-blue-700 font-black py-2 px-6 rounded-xl text-xs shadow-md shadow-blue-500/20 active:scale-95 transition-all"
                                 >

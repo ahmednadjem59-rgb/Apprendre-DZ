@@ -160,32 +160,43 @@ export const LEVELS: LevelData[] = [
               { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' }, 
               { id: 'physics', name: 'الفيزياء', icon: 'Flame', color: 'bg-indigo-700' },
               { id: 'science', name: 'العلوم الطبيعية', icon: 'Beaker', color: 'bg-emerald-800' },
+              { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
               { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-teal-600' },
               { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
-              { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
+              { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
             ] 
           },
           { 
             id: 'tech_math', 
             name: 'شعبة تقني رياضي', 
             subjects: [
-              { id: 'technology', name: 'التكنولوجيا', icon: 'Book', color: 'bg-slate-700' }, 
+              { id: 'technology', name: 'التكنولوجيا (هندسة)', icon: 'Book', color: 'bg-slate-700' }, 
               { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' },
               { id: 'physics', name: 'الفيزياء', icon: 'Flame', color: 'bg-indigo-700' },
+              { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
               { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-teal-600' },
               { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
+              { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
             ] 
           },
           { 
             id: 'management', 
             name: 'شعبة تسيير واقتصاد', 
             subjects: [
-              { id: 'accounting', name: 'المحاسبة', icon: 'TrendingUp', color: 'bg-emerald-600' },
+              { id: 'accounting', name: 'المحاسبة والتسيير المالي', icon: 'TrendingUp', color: 'bg-emerald-600' },
               { id: 'economics', name: 'الاقتصاد والمناجمنت', icon: 'Zap', color: 'bg-blue-600' },
               { id: 'law', name: 'القانون', icon: 'Shield', color: 'bg-slate-600' },
               { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' },
+              { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
               { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-teal-600' },
               { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
+              { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
             ] 
           },
           { 
@@ -193,22 +204,40 @@ export const LEVELS: LevelData[] = [
             name: 'شعبة آداب وفلسفة', 
             subjects: [
               { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
-              { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-teal-600' },
+              { id: 'arabic', name: 'اللغة العربية والآداب', icon: 'BookOpen', color: 'bg-teal-600' },
               { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
               { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
-              { id: 'languages', name: 'اللغات الأجنبية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
+              { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' },
             ] 
           },
           { 
             id: 'languages', 
             name: 'شعبة لغات أجنبية', 
             subjects: [
-              { id: 'languages', name: 'اللغات الأجنبية', icon: 'Languages', color: 'bg-cyan-700' },
               { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-teal-600' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
+              { id: 'languages', name: 'اللغة الأجنبية الثالثة (إسبانية/ألمانية/إيطالية)', icon: 'Languages', color: 'bg-emerald-700' },
               { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
               { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
-              { id: 'english', name: 'الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
-              { id: 'french', name: 'الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
+              { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' },
+            ] 
+          },
+          { 
+            id: 'arts', 
+            name: 'شعبة الفنون', 
+            subjects: [
+              { id: 'arts', name: 'الفنون (تشكيلية/مسرح/موسيقى/سمعي بصري)', icon: 'Star', color: 'bg-purple-700' },
+              { id: 'arabic', name: 'اللغة العربية والآداب', icon: 'BookOpen', color: 'bg-teal-600' },
+              { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
+              { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
+              { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
+              { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' },
             ] 
           },
         ]
@@ -238,33 +267,44 @@ export const LEVELS: LevelData[] = [
             subjects: [
               { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' }, 
               { id: 'physics', name: 'الفيزياء', icon: 'Flame', color: 'bg-indigo-700' },
-              { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
-              { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
-              { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-teal-600' },
               { id: 'science', name: 'العلوم الطبيعية', icon: 'Beaker', color: 'bg-emerald-800' },
+              { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
+              { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-teal-600' },
+              { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
+              { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
             ] 
           },
           { 
             id: 'tech_math', 
             name: 'شعبة تقني رياضي', 
             subjects: [
-              { id: 'technology', name: 'التكنولوجيا', icon: 'Book', color: 'bg-slate-700' }, 
+              { id: 'technology', name: 'التكنولوجيا (هندسة ميكانيكية/كهربائية/مدنية/طرائق)', icon: 'Book', color: 'bg-slate-700' }, 
               { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' },
               { id: 'physics', name: 'الفيزياء', icon: 'Flame', color: 'bg-indigo-700' },
-              { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
+              { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
               { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-teal-600' },
+              { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
+              { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
             ] 
           },
           { 
             id: 'management', 
             name: 'شعبة تسيير واقتصاد', 
             subjects: [
-              { id: 'management', name: 'تسيير واقتصاد', icon: 'TrendingUp', color: 'bg-emerald-600' },
+              { id: 'management', name: 'التسيير المحاسبي والمالي', icon: 'TrendingUp', color: 'bg-emerald-600' },
               { id: 'economics', name: 'الاقتصاد والمناجمنت', icon: 'Zap', color: 'bg-blue-600' },
               { id: 'law', name: 'القانون', icon: 'Shield', color: 'bg-slate-600' },
               { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' },
+              { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
               { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-teal-600' },
               { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
+              { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
             ] 
           },
           { 
@@ -272,21 +312,40 @@ export const LEVELS: LevelData[] = [
             name: 'شعبة آداب وفلسفة', 
             subjects: [
               { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
-              { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-teal-600' },
+              { id: 'arabic', name: 'اللغة العربية والآداب', icon: 'BookOpen', color: 'bg-teal-600' },
               { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
               { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
+              { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' },
             ] 
           },
           { 
             id: 'languages', 
             name: 'شعبة لغات أجنبية', 
             subjects: [
-              { id: 'languages', name: 'اللغات الأجنبية', icon: 'Languages', color: 'bg-cyan-700' },
-              { id: 'english', name: 'الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
-              { id: 'french', name: 'الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
               { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-teal-600' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
+              { id: 'languages', name: 'اللغة الأجنبية الثالثة (إسبانية/ألمانية/إيطالية)', icon: 'Languages', color: 'bg-emerald-700' },
               { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
               { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
+              { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
+              { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' },
+            ] 
+          },
+          { 
+            id: 'arts', 
+            name: 'شعبة الفنون', 
+            subjects: [
+              { id: 'arts', name: 'الفنون (تشكيلية/مسرح/موسيقى/سمعي بصري)', icon: 'Star', color: 'bg-purple-700' },
+              { id: 'arabic', name: 'اللغة العربية والآداب', icon: 'BookOpen', color: 'bg-teal-600' },
+              { id: 'philosophy', name: 'الفلسفة', icon: 'Star', color: 'bg-rose-700' },
+              { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-800' },
+              { id: 'islamic', name: 'العلوم الإسلامية', icon: 'Heart', color: 'bg-rose-600' },
+              { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-700' },
+              { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-700' },
+              { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-800' },
             ] 
           },
         ]
@@ -348,9 +407,31 @@ export const QUESTIONS: Record<string, Question[]> = {
     { id: 's2s1', text: 'العضية المسؤولة عن عملية التركيب الضوئي هي:', options: ['الميتوكوندريا', 'الصانعة الخضراء', 'النواة'], correctAnswer: 1 },
     { id: 's2s2', text: 'النيوكليوتيدة هي وحدة بناء:', options: ['البروتين', 'الـ DNA', 'الدسم'], correctAnswer: 1 },
   ],
-  'secondary-3as-math_track-math': [
+  'secondary-3as-math-math': [
     { id: 's3m1', text: 'مشتقة الدالة 2x هي:', options: ['x', '2', '0'], correctAnswer: 1 },
     { id: 's3m2', text: 'مجموعة تعريف الدالة الناطقة هي:', options: ['R', 'R ما عدا القيم التي تعدم المقام'], correctAnswer: 1 },
+  ],
+  'secondary-3as-math_track-math': [
+    { id: 's3m1_b', text: 'مشتقة الدالة 2x هي:', options: ['x', '2', '0'], correctAnswer: 1 },
+    { id: 's3m2_b', text: 'مجموعة تعريف الدالة الناطقة هي:', options: ['R', 'R ما عدا القيم التي تعدم المقام'], correctAnswer: 1 },
+  ],
+  'secondary-3as-tech_math-technology': [
+    { id: 's3tm_t1', text: 'في مخطط GRAFCET، الانتقال بين مرحلتين متتاليتين يتم عند:', options: ['تنشيط المرحلة السابقة وتحقق قابلية الانتقال معاً', 'انتهاء الوقت المحدد فقط', 'ضغط زر التوقف الاستعجالي'], correctAnswer: 0, remedyPlan: 'شرط عبور الانتقال هو نشاط المرحلة السابقة وصحة الاستقبالية المرفقة بها.' },
+  ],
+  'secondary-3as-management-management': [
+    { id: 's3mg_m1', text: 'طريقة الاهتلاك التي يكون فيها قسط الاهتلاك السنوي ثابتاً طيلة سنوات الاستعمال هي:', options: ['الاهتلاك الخطي (الثابت)', 'الاهتلاك المتناقص', 'الاهتلاك المتزايد'], correctAnswer: 0, remedyPlan: 'الاهتلاك الخطي يقسم القيمة القابلة للاهتلاك بالتساوي على سنوات العمر الافتراضي.' },
+  ],
+  'secondary-3as-management-economics': [
+    { id: 's3mg_e1', text: 'المؤسسة المالية المسؤولة عن إصدار العملة الوطنية وإدارة السياسة النقدية هي:', options: ['البنك المركزي (بنك الجزائر)', 'البنوك التجارية', 'بورصة الأوراق المالية'], correctAnswer: 0, remedyPlan: 'بنك الجزائر هو الهيئة الوحيدة المخولة قانوناً بإصدار النقد القانوني وإدارة الاحتياطي النقدي.' },
+  ],
+  'secondary-3as-management-law': [
+    { id: 's3mg_l1', text: 'الأركان الموضوعية العامة لصحة عقد البيع هي:', options: ['الرضا، الأهلية، المحل، والسبب', 'وجود شهود عدول فقط', 'تسديد نصف الثمن مسبقاً'], correctAnswer: 0, remedyPlan: 'يشترط لصحة العقد الرضا الخالي من العيوب، وأهلية التعاقد، ومحل وسبب مشروعين.' },
+  ],
+  'secondary-3as-arts-arts': [
+    { id: 's3art_a1', text: 'المدرسة الفنية التشكيلية التي اعتمدت على تفكيك الأشكال وإعادة بنائها هندسياً بقيادة بيكاسو هي:', options: ['المدرسة التكعيبية', 'المدرسة الرومانسية', 'المدرسة الانطباعية'], correctAnswer: 0, remedyPlan: 'المدرسة التكعيبية حولت العناصر إلى مسطحات ومجسمات هندسية أولية كالمكعب والمخروط.' },
+  ],
+  'secondary-3as-languages-languages': [
+    { id: 's3lang_l1', text: 'En español: ¿Qué modo verbal expresa deseos, dudas o hipótesis?', options: ['Modo subjuntivo', 'Modo indicativo', 'Modo imperativo'], correctAnswer: 0, remedyPlan: 'El modo subjuntivo se emplea para expresar la subjetividad, dudas, deseos y posibilidades.' },
   ],
   'middle-4am-arabic': [
     { id: 'm4a1', text: 'البدل هو من:', options: ['المنصوبات', 'التوابع', 'المرفوعات'], correctAnswer: 1 },
