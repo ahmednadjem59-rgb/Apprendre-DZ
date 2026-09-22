@@ -1,4 +1,4 @@
-export type Level = 'primary' | 'middle' | 'secondary';
+export type Level = 'primary' | 'middle';
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
 export interface Question {
@@ -62,6 +62,10 @@ export interface YearData {
 export interface TrackData {
   id: string;
   name: string;
+  description?: string;
+  icon?: string;
+  color?: string;
+  badge?: string;
   subjects?: Subject[]; // Override level subjects if track-specific
 }
 

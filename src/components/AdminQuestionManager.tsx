@@ -70,9 +70,9 @@ export const AdminQuestionManager: React.FC<AdminQuestionManagerProps> = ({
 
   // Question Form State
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
-  const [levelId, setLevelId] = useState<string>(initialLevelId || 'secondary');
-  const [yearId, setYearId] = useState<string>(initialYearId || '3as');
-  const [trackId, setTrackId] = useState<string>('exp_science');
+  const [levelId, setLevelId] = useState<string>(initialLevelId || 'middle');
+  const [yearId, setYearId] = useState<string>(initialYearId || '1am');
+  const [trackId, setTrackId] = useState<string>('');
   const [subjectId, setSubjectId] = useState<string>(initialSubjectId || 'math');
   const [semester, setSemester] = useState<number>(initialSemester || 1);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
@@ -93,9 +93,9 @@ export const AdminQuestionManager: React.FC<AdminQuestionManagerProps> = ({
 
   // Lesson Form State
   const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
-  const [lessonLevelId, setLessonLevelId] = useState<string>(initialLevelId || 'secondary');
-  const [lessonYearId, setLessonYearId] = useState<string>(initialYearId || '3as');
-  const [lessonTrackId, setLessonTrackId] = useState<string>('exp_science');
+  const [lessonLevelId, setLessonLevelId] = useState<string>(initialLevelId || 'middle');
+  const [lessonYearId, setLessonYearId] = useState<string>(initialYearId || '1am');
+  const [lessonTrackId, setLessonTrackId] = useState<string>('');
   const [lessonSubjectId, setLessonSubjectId] = useState<string>(initialSubjectId || 'math');
   const [lessonSemester, setLessonSemester] = useState<number>(initialSemester || 1);
   const [lessonTitle, setLessonTitle] = useState('');
@@ -449,8 +449,8 @@ export const AdminQuestionManager: React.FC<AdminQuestionManagerProps> = ({
     setOptions(q.options.length === 4 ? q.options : [...q.options, '', '', '', ''].slice(0, 4));
     setCorrectAnswer(q.correctAnswer || 0);
     setDifficulty(q.difficulty || 'medium');
-    setLevelId(q.levelId || 'secondary');
-    setYearId(q.yearId || '3as');
+    setLevelId(q.levelId || 'middle');
+    setYearId(q.yearId || '1am');
     setTrackId(q.trackId || '');
     setSubjectId(q.subjectId || 'math');
     setSemester(Number(q.semester) || 1);
@@ -463,8 +463,8 @@ export const AdminQuestionManager: React.FC<AdminQuestionManagerProps> = ({
     setLessonTitle(l.title);
     setLessonDescription(l.description || '');
     setLessonContent(l.content || '');
-    setLessonLevelId(l.levelId || 'secondary');
-    setLessonYearId(l.yearId || '3as');
+    setLessonLevelId(l.levelId || 'middle');
+    setLessonYearId(l.yearId || '1am');
     setLessonTrackId(l.trackId || '');
     setLessonSubjectId(l.subjectId || 'math');
     setLessonSemester(Number(l.semester) || 1);
@@ -660,7 +660,7 @@ export const AdminQuestionManager: React.FC<AdminQuestionManagerProps> = ({
                   </select>
                 </div>
 
-                {/* Track (if secondary) */}
+                {/* Track (if applicable) */}
                 {availableTracks.length > 0 && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-slate-700 block">الشعبة</label>
@@ -1049,7 +1049,7 @@ export const AdminQuestionManager: React.FC<AdminQuestionManagerProps> = ({
                   </select>
                 </div>
 
-                {/* Track (if secondary) */}
+                {/* Track (if applicable) */}
                 {availableLessonTracks.length > 0 && (
                   <div className="space-y-1.5">
                     <label className="text-xs font-black text-slate-700 block">الشعبة</label>

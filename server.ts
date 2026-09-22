@@ -207,11 +207,6 @@ async function startServer() {
           else if (yn.includes("3") || yn.includes("ثالثة")) yearId = "3ap";
           else if (yn.includes("4") || yn.includes("رابعة")) yearId = "4ap";
           else yearId = "5ap";
-        } else if (ln.includes("ثانوي") || ln.includes("secondary")) {
-          levelId = "secondary";
-          if (yn.includes("1") || yn.includes("أولى")) yearId = "1as";
-          else if (yn.includes("2") || yn.includes("ثانية")) yearId = "2as";
-          else yearId = "3as";
         } else {
           levelId = "middle";
           if (yn.includes("1") || yn.includes("أولى")) yearId = "1am";
@@ -254,7 +249,7 @@ async function startServer() {
 1. **الالتزام الحرفي بالمنهاج الجزائري الرسمي المعتمد لـ (${subject} - ${year})**:
    - يجب أن تكون كل الأسئلة مأخوذة حصراً ومباشرة من الدروس والمفاهيم المقررة التي يدرسها التلميذ فعلياً في "${year}" في مادة "${subject}".
    - **يُمنع منعاً باتاً** خلط المواد: لا تضع أسئلة من مادة أخرى مطلقاً (إذا كانت المادة رياضيات فالأسئلة كلها رياضيات، وإذا كانت لغة عربية فالأسئلة كلها لغة عربية، وإذا كانت علوم فالأسئلة كلها علوم طبيعية).
-   - **يُمنع منعاً باتاً** وضع أسئلة من أطوار أخرى (لا تضع مفاهيم المتوسط لتلاميذ الابتدائي، ولا تضع مفاهيم الثانوي للطور المتوسط).
+   - **يُمنع منعاً باتاً** وضع أسئلة من أطوار أخرى (لا تضع مفاهيم المتوسط لتلاميذ الابتدائي، ولا العكس).
 ${lessonTitle ? `
 2. **التركيز البيداغوجي الحصري والمطلق على درس: "${lessonTitle}"**:
    - التلميذ اختار اختباراً مخصصاً لدرس "${lessonTitle}".

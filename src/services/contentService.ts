@@ -75,7 +75,7 @@ function normalizeSubject(subject: string): string {
 }
 
 function deriveIdsFromNames(levelName: string, yearName: string): { levelId: string; yearId: string } {
-  const levelId = levelName.includes('ابتدائي') ? 'primary' : levelName.includes('متوسط') ? 'middle' : 'secondary';
+  const levelId = levelName.includes('ابتدائي') ? 'primary' : 'middle';
   let yearId = '1ap';
   if (levelId === 'primary') {
     if (yearName.includes('الأولى') || yearName.includes('1')) yearId = '1ap';
@@ -83,15 +83,11 @@ function deriveIdsFromNames(levelName: string, yearName: string): { levelId: str
     else if (yearName.includes('الثالثة') || yearName.includes('3')) yearId = '3ap';
     else if (yearName.includes('الرابعة') || yearName.includes('4')) yearId = '4ap';
     else if (yearName.includes('الخامسة') || yearName.includes('5')) yearId = '5ap';
-  } else if (levelId === 'middle') {
+  } else {
     if (yearName.includes('الأولى') || yearName.includes('1')) yearId = '1am';
     else if (yearName.includes('الثانية') || yearName.includes('2')) yearId = '2am';
     else if (yearName.includes('الثالثة') || yearName.includes('3')) yearId = '3am';
     else if (yearName.includes('الرابعة') || yearName.includes('4')) yearId = '4am';
-  } else if (levelId === 'secondary') {
-    if (yearName.includes('الأولى') || yearName.includes('1')) yearId = '1as';
-    else if (yearName.includes('الثانية') || yearName.includes('2')) yearId = '2as';
-    else if (yearName.includes('الثالثة') || yearName.includes('3')) yearId = '3as';
   }
   return { levelId, yearId };
 }

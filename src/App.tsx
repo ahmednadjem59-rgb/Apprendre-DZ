@@ -17,6 +17,10 @@ import {
   ChevronLeft,
   RotateCcw,
   Home,
+  Cpu,
+  Palette,
+  Compass,
+  Atom,
   CheckCircle2,
   PlayCircle,
   XCircle,
@@ -138,7 +142,12 @@ const IconMap: Record<string, any> = {
   Book,
   Library,
   Scale,
-  Star
+  Star,
+  Zap,
+  Cpu,
+  Palette,
+  Compass,
+  Atom
 };
 
 type AppView = 'welcome' | 'auth' | 'levels' | 'tracks' | 'years' | 'semester' | 'subjects' | 'subjectMode' | 'lessonIndex' | 'difficulty' | 'quiz' | 'results' | 'contest' | 'lessons' | 'lessonContent' | 'revision' | 'revisionContent' | 'marketplace' | 'challenges' | 'profile' | 'admin' | 'adminQuestions' | 'achievements' | 'about' | 'privacy' | 'ai-exercises' | 'library' | 'booking' | 'printed-store' | 'lesson-purchase' | 'startup-pitch' | 'chats';
@@ -791,8 +800,8 @@ export default function App() {
     let challengeQuestions: any[] = [];
     try {
       challengeQuestions = await generateQuestions(
-        selectedLevel?.name || 'التعليم الثانوي', 
-        selectedYear?.name || 'السنة الأولى ثانوي', 
+        selectedLevel?.name || 'التعليم المتوسط', 
+        selectedYear?.name || 'السنة الرابعة متوسط', 
         subject?.name || 'الرياضيات', 
         diff, 
         trackName, 
@@ -7007,7 +7016,7 @@ export default function App() {
                               required
                               value={schoolName}
                               onChange={(e) => setSchoolName(e.target.value)}
-                              placeholder="مثال: ثانوية العقيد لطفي، متوسطة النجاح..."
+                              placeholder="مثال: متوسطة النجاح، مدرسة الأمير عبد القادر..."
                               className="w-full p-3.5 bg-white border-2 border-indigo-100 rounded-xl focus:border-indigo-500 outline-none transition-all font-bold text-sm"
                             />
                           </div>
@@ -7363,23 +7372,61 @@ export default function App() {
               </button>
 
               <div className="space-y-2">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-bold border border-blue-100">
+                  <GraduationCap size={14} />
+                  <span>{selectedLevel?.name || 'المنهاج الجزائري المعتمد'}</span>
+                </div>
                 <h2 className="text-3xl font-black text-slate-900">اختر الشعبة</h2>
-                <p className="text-slate-500">سنة {selectedYear.name}</p>
+                <p className="text-slate-500 font-medium">سنة {selectedYear.name} • جميع الشعب الرسمية المعتمدة من وزارة التربية الوطنية</p>
               </div>
 
-              <div className="grid gap-3">
-                {(selectedYear as any).tracks?.map((track: any) => (
-                  <motion.button
-                    key={track.id}
-                    whileHover={{ scale: 1.02, x: -8 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleTrackSelect(track.id)}
-                    className="flex items-center justify-between p-5 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all group cursor-pointer text-right"
-                  >
-                    <span className="text-lg font-bold">{track.name}</span>
-                    <ChevronLeft size={20} className="text-slate-300 group-hover:text-blue-500" />
-                  </motion.button>
-                ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {(selectedYear as any).tracks?.map((track: any) => {
+                  const TrackIcon = IconMap[track.icon] || GraduationCap;
+                  const trackBg = track.color || 'bg-blue-600';
+                  return (
+                    <motion.button
+                      key={track.id}
+                      whileHover={{ scale: 1.02, y: -2 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleTrackSelect(track.id)}
+                      className="flex flex-col justify-between p-5 bg-white rounded-2xl shadow-sm border border-slate-200/80 hover:border-blue-400 hover:shadow-md transition-all group cursor-pointer text-right relative overflow-hidden"
+                    >
+                      <div className="flex items-start gap-4">
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm ${trackBg}`}>
+                          <TrackIcon size={24} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1 flex-wrap">
+                            <span className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                              {track.name}
+                            </span>
+                            {track.badge && (
+                              <span className="px-2 py-0.5 text-xs font-bold rounded-md bg-slate-100 text-slate-700 border border-slate-200">
+                                {track.badge}
+                              </span>
+                            )}
+                          </div>
+                          {track.description && (
+                            <p className="text-xs text-slate-500 leading-relaxed line-clamp-2">
+                              {track.description}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <span className="font-semibold text-slate-600">
+                          {track.subjects?.length || 0} مواد دراسية مقررة
+                        </span>
+                        <div className="flex items-center gap-1 text-blue-600 font-bold group-hover:translate-x-[-4px] transition-transform">
+                          <span>دخول المواد والدروس</span>
+                          <ChevronLeft size={16} />
+                        </div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
               </div>
             </motion.div>
           )}
