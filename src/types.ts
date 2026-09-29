@@ -55,6 +55,7 @@ export interface Subject {
 export interface YearData {
   id: string;
   name: string;
+  badge?: string;
   subjects?: Subject[]; // Override level subjects
   tracks?: TrackData[]; // Add tracks for years that have them (e.g. Secondary)
 }
@@ -72,6 +73,10 @@ export interface TrackData {
 export interface LevelData {
   id: Level;
   name: string;
+  badge?: string;
+  description?: string;
+  icon?: string;
+  color?: string;
   tracks?: TrackData[];
   years: YearData[];
   subjects: Subject[];

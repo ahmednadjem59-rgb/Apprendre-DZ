@@ -62,7 +62,7 @@ async function generateWithModelFallback(
           config
         });
         const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error(`Timeout after 25000ms on model ${model}`)), 25000)
+          setTimeout(() => reject(new Error(`Timeout after 9000ms on model ${model}`)), 9000)
         );
 
         const response: any = await Promise.race([genPromise, timeoutPromise]);

@@ -1,9 +1,26 @@
 import { LevelData, Question } from './types';
 
+const MIDDLE_SUBJECTS = [
+  { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-emerald-600' },
+  { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-600' },
+  { id: 'physics', name: 'علوم فيزيائية وتكنولوجيا', icon: 'Flame', color: 'bg-amber-500' },
+  { id: 'science', name: 'علوم الطبيعة والحياة', icon: 'Beaker', color: 'bg-emerald-700' },
+  { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-600' },
+  { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-600' },
+  { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-700' },
+  { id: 'islamic', name: 'تربية إسلامية', icon: 'Heart', color: 'bg-rose-600' },
+  { id: 'civic', name: 'تربية مدنية', icon: 'Shield', color: 'bg-indigo-600' },
+  { id: 'informatics', name: 'المعلوماتية', icon: 'Cpu', color: 'bg-slate-600' },
+];
+
 export const LEVELS: LevelData[] = [
   {
     id: 'primary',
     name: 'التعليم الابتدائي',
+    badge: '5 سنوات دراسية • مرحلة التأسيس',
+    description: 'من السنة 1 إلى 5 ابتدائي • بناء المهارات الأساسية والقراءة والحساب',
+    icon: 'BookOpen',
+    color: 'emerald',
     years: [
       { 
         id: '1ap', 
@@ -75,24 +92,17 @@ export const LEVELS: LevelData[] = [
   {
     id: 'middle',
     name: 'التعليم المتوسط',
+    badge: '4 سنوات دراسية • شهادة BEM 🎓',
+    description: 'من السنة 1 إلى 4 متوسط • تحضير مكثف لشهادة التعليم المتوسط وتمارين تفاعلية',
+    icon: 'GraduationCap',
+    color: 'indigo',
     years: [
-      { id: '1am', name: 'السنة الأولى متوسط' },
-      { id: '2am', name: 'السنة الثانية متوسط' },
-      { id: '3am', name: 'السنة الثالثة متوسط' },
-      { id: '4am', name: 'السنة الرابعة متوسط' },
+      { id: '1am', name: 'السنة الأولى متوسط', badge: '1 متوسط', subjects: MIDDLE_SUBJECTS },
+      { id: '2am', name: 'السنة الثانية متوسط', badge: '2 متوسط', subjects: MIDDLE_SUBJECTS },
+      { id: '3am', name: 'السنة الثالثة متوسط', badge: '3 متوسط', subjects: MIDDLE_SUBJECTS },
+      { id: '4am', name: 'السنة الرابعة متوسط', badge: 'شهادة BEM 🎓', subjects: MIDDLE_SUBJECTS },
     ],
-    subjects: [
-      { id: 'arabic', name: 'اللغة العربية', icon: 'BookOpen', color: 'bg-emerald-600' },
-      { id: 'math', name: 'الرياضيات', icon: 'Calculator', color: 'bg-blue-600' },
-      { id: 'physics', name: 'علوم فيزيائية وتكنولوجيا', icon: 'Flame', color: 'bg-yellow-600' },
-      { id: 'science', name: 'علوم الطبيعة والحياة', icon: 'Beaker', color: 'bg-emerald-700' },
-      { id: 'french', name: 'اللغة الفرنسية', icon: 'Languages', color: 'bg-cyan-600' },
-      { id: 'english', name: 'اللغة الإنجليزية', icon: 'Languages', color: 'bg-orange-600' },
-      { id: 'history', name: 'تاريخ وجغرافيا', icon: 'Globe', color: 'bg-amber-700' },
-      { id: 'islamic', name: 'تربية إسلامية', icon: 'Heart', color: 'bg-rose-600' },
-      { id: 'civic', name: 'تربية مدنية', icon: 'Shield', color: 'bg-indigo-600' },
-      { id: 'informatics', name: 'المعلوماتية', icon: 'Book', color: 'bg-slate-600' },
-    ],
+    subjects: MIDDLE_SUBJECTS,
   },
 ];
 

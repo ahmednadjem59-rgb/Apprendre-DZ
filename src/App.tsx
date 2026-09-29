@@ -4615,7 +4615,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <main className="relative z-10 max-w-2xl mx-auto px-4 py-8 md:py-16">
+      <main className="relative z-10 max-w-2xl mx-auto px-4 pt-4 pb-28 md:pt-8 md:pb-32">
         <AnimatePresence>
           {!firebaseConnected && (
             <motion.div
@@ -7166,16 +7166,17 @@ export default function App() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="space-y-8 relative"
+              className="space-y-6 relative"
             >
               {/* Profile/Menu Button */}
-              <div className="absolute -top-4 -right-4">
+              <div className="absolute -top-3 -right-2 z-20">
                 <div className="relative">
                   <button 
                     onClick={() => setShowAuthMenu(!showAuthMenu)}
-                    className="p-3 bg-white shadow-xl border border-slate-100 rounded-2xl text-slate-400 hover:text-blue-600 transition-all hover:scale-110 active:scale-95"
+                    className="p-3 bg-white shadow-lg border border-slate-100 rounded-2xl text-slate-500 hover:text-blue-600 transition-all hover:scale-105 active:scale-95"
+                    title="القائمة"
                   >
-                    <MoreVertical size={24} />
+                    <MoreVertical size={22} />
                   </button>
                   <AnimatePresence>
                     {showAuthMenu && (
@@ -7255,102 +7256,197 @@ export default function App() {
                 </div>
               </div>
 
-              {/* User Header Info */}
-              <div className="bg-white p-6 rounded-[2.5rem] shadow-xl shadow-blue-900/5 border border-slate-100 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-100">
-                    <User size={24} />
+              {/* User Header Info - Balanced & Mobile-Optimized */}
+              <div className="bg-white p-4 sm:p-5 rounded-3xl shadow-sm border border-slate-100 flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-11 h-11 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-md shadow-blue-200 shrink-0">
+                      <User size={22} />
+                    </div>
+                    <div className="flex flex-col text-right">
+                      <div className="flex items-center gap-2">
+                        <p className="font-black text-slate-900 text-sm sm:text-base leading-tight">
+                          {user?.displayName?.split(' ')[0] || 'تلميذ'}
+                        </p>
+                        <span className="text-[11px] font-black text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                          {totalPoints} نقطة
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 mt-1">
+                        <div className={`flex items-center gap-1 ${currentLevelInfo.bg} px-2 py-0.5 rounded-full border ${currentLevelInfo.border}`}>
+                          <span className={`text-[9px] font-black ${currentLevelInfo.color}`}>{currentLevelInfo.name}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end">
-                    <p className="font-black text-slate-900">{user?.displayName?.split(' ')[0] || 'تلميذ'}</p>
-                    <div className={`mt-1 flex items-center gap-1 ${currentLevelInfo.bg} px-2 py-0.5 rounded-full border ${currentLevelInfo.border} w-fit`}>
-                      <span className={`text-[9px] font-black ${currentLevelInfo.color}`}>{currentLevelInfo.name}</span>
+
+                  <div className="flex items-center gap-3 sm:gap-4 shrink-0">
+                    <div className="text-center">
+                      <div className="flex items-center gap-1 text-amber-500 justify-center">
+                        <Trophy size={15} />
+                        <span className="text-base font-black text-slate-900">{trophies}</span>
+                      </div>
+                      <p className="text-[9px] text-slate-400 font-bold">كؤوس</p>
+                    </div>
+                    <div className="h-7 w-px bg-slate-100" />
+                    <div className="text-center">
+                      <div className="flex items-center gap-1 text-emerald-500 justify-center">
+                        <Star size={15} />
+                        <span className="text-base font-black text-slate-900">{Math.floor(dailyStudySeconds / 60)}</span>
+                      </div>
+                      <p className="text-[9px] text-slate-400 font-bold">دقائق اليوم</p>
                     </div>
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-slate-100 flex flex-col gap-2">
-                  {user?.email === 'ahmednadjem59@gmail.com' && (
-                    <button 
-                      onClick={() => { setView('marketplace'); setShowAuthMenu(false); }}
-                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-emerald-50 text-emerald-700 font-bold transition-all"
-                    >
-                      <TrendingUp size={20} />
-                      <span className="text-sm">إحصائيات الأرباح</span>
-                    </button>
-                  )}
+
+                {user?.email === 'ahmednadjem59@gmail.com' && (
                   <button 
                     onClick={() => { setView('marketplace'); setShowAuthMenu(false); }}
-                    className="w-full flex items-center justify-between p-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold shadow-lg shadow-blue-200 active:scale-95 transition-all"
+                    className="w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl bg-emerald-50 text-emerald-700 font-black text-xs border border-emerald-200 hover:bg-emerald-100 transition-all"
                   >
-                    <div className="flex items-center gap-3">
-                      <div className="bg-white/20 p-2 rounded-lg">
-                        <Smile size={20} />
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm">متجر الصور الشخصية</p>
-                        <p className="text-[10px] text-white/80">استبدل نقاطك بصور رمزية مميزة</p>
-                      </div>
-                    </div>
-                    <ChevronLeft size={20} />
+                    <TrendingUp size={16} />
+                    <span>لوحة إحصائيات الأرباح والمبيعات</span>
                   </button>
-                </div>
-                <div className="flex items-center gap-6">
-                  <div className="text-center">
-                    <div className="flex items-center gap-1.5 text-blue-600 justify-center">
-                      <Trophy size={16} />
-                      <span className="text-lg font-black">{trophies}</span>
-                    </div>
-                    <p className="text-[10px] text-slate-400 font-bold">كأس</p>
-                  </div>
-                  <div className="h-10 w-px bg-slate-100" />
-                  <div className="text-center">
-                    <div className="flex items-center gap-1.5 text-emerald-500 justify-center">
-                      <Star size={16} />
-                      <span className="text-lg font-black">{Math.floor(dailyStudySeconds / 60)}</span>
-                    </div>
-                    <p className="text-[10px] text-slate-400 font-bold">دقائق اليوم</p>
-                  </div>
-                </div>
+                )}
               </div>
 
-              <div className="text-center space-y-4">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  whileHover={{ rotate: 10 }}
-                  transition={{ type: 'spring', damping: 12 }}
-                  className="inline-flex p-6 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-[2.5rem] shadow-2xl shadow-blue-200 relative overflow-hidden"
-                >
-                  <div className="absolute top-0 right-0 w-8 h-8 bg-white/20 rounded-full -mr-3 -mt-3 blur-md" />
-                  <GraduationCap size={56} className="relative z-10" />
-                </motion.div>
-                <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 leading-tight">
-                  <span className="text-blue-600">Apprendre DZ</span>
+              {/* Title / Hero */}
+              <div className="text-center space-y-2 pt-1">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-100 text-blue-700 rounded-full text-xs font-black shadow-xs">
+                  <Sparkles size={14} className="text-amber-500" />
+                  <span>المنهاج الجزائري الرسمي المعتمد 🇩🇿</span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+                  اختر <span className="text-blue-600">الطور التعليمي</span>
                 </h1>
-                
-                <p className="text-lg text-slate-500 font-bold">
-                  اختر مستواك التعليمي وابدأ رحلة التميز!
+                <p className="text-xs sm:text-sm text-slate-500 font-bold max-w-md mx-auto">
+                  اختر بين الطور الابتدائي أو الطور المتوسط لمتابعة الدروس وحل الاختبارات النموذجية
                 </p>
               </div>
 
-              <div className="grid gap-4">
-                {LEVELS.map((level) => (
-                  <motion.button
-                    key={level.id}
-                    whileHover={{ scale: 1.02, x: -8 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleLevelSelect(level.id)}
-                    className="flex items-center justify-between p-6 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all group cursor-pointer"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 flex items-center justify-center bg-blue-50 text-blue-600 rounded-xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                        <Trophy size={24} />
+              {/* Level Cards - Responsive, Distinct, Prominently Showing BOTH Primary and Middle */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* 1. الطور الابتدائي */}
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleLevelSelect('primary')}
+                  className="group relative bg-white rounded-3xl p-5 sm:p-6 border-2 border-emerald-200 hover:border-emerald-500 shadow-md shadow-emerald-900/5 hover:shadow-xl hover:shadow-emerald-500/10 transition-all cursor-pointer flex flex-col justify-between overflow-hidden text-right"
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl group-hover:scale-125 transition-transform" />
+                  <div className="relative z-10 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="w-14 h-14 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200 group-hover:rotate-6 transition-transform">
+                        <BookOpen size={28} />
                       </div>
-                      <span className="text-xl font-bold">{level.name}</span>
+                      <span className="px-3 py-1 bg-emerald-50 text-emerald-800 text-[11px] font-black rounded-full border border-emerald-200 shadow-xs">
+                        5 سنوات دراسية
+                      </span>
                     </div>
-                    <ChevronLeft className="text-slate-300 group-hover:text-blue-500" />
-                  </motion.button>
-                ))}
+
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-black text-slate-900 group-hover:text-emerald-700 transition-colors">
+                        التعليم الابتدائي
+                      </h2>
+                      <p className="text-xs sm:text-sm text-slate-500 font-bold mt-1">
+                        من السنة الأولى إلى السنة الخامسة ابتدائي
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex flex-wrap gap-1">
+                        <span className="text-[10px] font-black bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">1AP</span>
+                        <span className="text-[10px] font-black bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">2AP</span>
+                        <span className="text-[10px] font-black bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">3AP</span>
+                        <span className="text-[10px] font-black bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">4AP</span>
+                        <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-md font-bold">5AP • شهادة</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        تأسيس المهارات، القراءة، الحساب، والتربية العلمية والإسلامية
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 mt-5 pt-3 border-t border-emerald-100 flex items-center justify-between">
+                    <span className="text-xs font-black text-emerald-700 group-hover:translate-x-[-2px] transition-transform">
+                      دخول الطور الابتدائي
+                    </span>
+                    <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+                      <ChevronLeft size={18} />
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* 2. الطور المتوسط - Clear, Featured & Distinct */}
+                <motion.div
+                  whileHover={{ y: -4, scale: 1.01 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleLevelSelect('middle')}
+                  className="group relative bg-white rounded-3xl p-5 sm:p-6 border-2 border-indigo-300 hover:border-indigo-600 shadow-md shadow-indigo-900/5 hover:shadow-xl hover:shadow-indigo-500/15 transition-all cursor-pointer flex flex-col justify-between overflow-hidden text-right"
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/15 rounded-full blur-2xl group-hover:scale-125 transition-transform" />
+                  <div className="relative z-10 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="w-14 h-14 bg-gradient-to-br from-indigo-600 to-blue-600 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 group-hover:rotate-6 transition-transform">
+                        <GraduationCap size={28} />
+                      </div>
+                      <span className="px-3 py-1 bg-indigo-50 text-indigo-800 text-[11px] font-black rounded-full border border-indigo-200 shadow-xs">
+                        4 سنوات • شهادة BEM 🎓
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-xl sm:text-2xl font-black text-slate-900 group-hover:text-indigo-700 transition-colors">
+                          التعليم المتوسط
+                        </h2>
+                      </div>
+                      <p className="text-xs sm:text-sm text-slate-500 font-bold mt-1">
+                        من السنة الأولى إلى السنة الرابعة متوسط
+                      </p>
+                    </div>
+
+                    <div className="space-y-1.5 pt-1">
+                      <div className="flex flex-wrap gap-1">
+                        <span className="text-[10px] font-black bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">1AM</span>
+                        <span className="text-[10px] font-black bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">2AM</span>
+                        <span className="text-[10px] font-black bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">3AM</span>
+                        <span className="text-[10px] font-black bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-md font-black">4AM • بيام BEM</span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        10 مواد مقررة: فيزياء، علوم طبيعية، رياضيات، لغات، وتحضير البيام
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="relative z-10 mt-5 pt-3 border-t border-indigo-100 flex items-center justify-between">
+                    <span className="text-xs font-black text-indigo-700 group-hover:translate-x-[-2px] transition-transform">
+                      دخول الطور المتوسط
+                    </span>
+                    <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                      <ChevronLeft size={18} />
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+
+              {/* Quick Store Banner */}
+              <div className="pt-1">
+                <button 
+                  onClick={() => { setView('marketplace'); }}
+                  className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-black shadow-md shadow-blue-200 active:scale-98 transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="bg-white/20 p-2 rounded-xl group-hover:scale-110 transition-transform">
+                      <Smile size={20} />
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs sm:text-sm font-black">متجر الصور الرمزية والمكافآت</p>
+                      <p className="text-[10px] text-blue-100 font-medium">استبدل نقاطك بصور شخصية وكؤوس تميز</p>
+                    </div>
+                  </div>
+                  <ChevronLeft size={18} className="group-hover:translate-x-[-4px] transition-transform" />
+                </button>
               </div>
             </motion.div>
           )}
@@ -7437,35 +7533,65 @@ export default function App() {
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -50 }}
-              className="space-y-8"
+              className="space-y-6"
             >
               <button 
                 onClick={() => setView('levels')}
-                className="flex items-center gap-2 text-slate-500 hover:text-blue-600 font-bold transition-colors mb-4"
+                className="flex items-center gap-2 text-slate-500 hover:text-blue-600 font-bold transition-colors mb-2"
               >
                 <ChevronRight size={20} />
                 <span>العودة للمستويات</span>
               </button>
 
               <div className="space-y-2">
-                <h2 className="text-3xl font-black text-slate-900">{selectedLevel.name}</h2>
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-black border ${selectedLevel.id === 'middle' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+                  {selectedLevel.id === 'middle' ? <GraduationCap size={14} /> : <BookOpen size={14} />}
+                  <span>{selectedLevel.name} {selectedLevel.id === 'middle' ? '• 4 سنوات دراسية' : '• 5 سنوات دراسية'}</span>
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-900">{selectedLevel.name}</h2>
                 {selectedTrack && <p className="text-blue-600 font-bold">{selectedTrack.name}</p>}
-                <p className="text-slate-500">اختر السنة الدراسية</p>
+                <p className="text-slate-500 text-sm font-medium">اختر السنة الدراسية للبدء في حل التمارين ومراجعة الدروس</p>
               </div>
 
               <div className="grid gap-3">
-                {selectedLevel.years.map((year) => (
-                  <motion.button
-                    key={year.id}
-                    whileHover={{ scale: 1.02, x: -8 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => handleYearSelect(year.id)}
-                    className="flex items-center justify-between p-5 bg-white rounded-2xl shadow-sm border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all group cursor-pointer text-right"
-                  >
-                    <span className="text-lg font-bold">{year.name}</span>
-                    <ChevronLeft size={20} className="text-slate-300 group-hover:text-blue-500" />
-                  </motion.button>
-                ))}
+                {selectedLevel.years.map((year: any, idx: number) => {
+                  const isBEM = year.id === '4am';
+                  const yearSubjectCount = year.subjects?.length || (selectedLevel as any).subjects?.length || 0;
+                  return (
+                    <motion.button
+                      key={year.id}
+                      whileHover={{ scale: 1.01, x: -6 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleYearSelect(year.id)}
+                      className={`flex items-center justify-between p-4 sm:p-5 bg-white rounded-2xl shadow-sm border transition-all group cursor-pointer text-right ${isBEM ? 'border-amber-300 bg-gradient-to-r from-amber-50/40 to-white hover:border-amber-500 hover:shadow-md' : 'border-slate-100 hover:border-blue-300 hover:shadow-md'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm shadow-sm ${isBEM ? 'bg-amber-500 text-white' : selectedLevel.id === 'middle' ? 'bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white' : 'bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white'} transition-colors`}>
+                          {isBEM ? 'BEM' : (idx + 1)}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-base sm:text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                              {year.name}
+                            </span>
+                            {year.badge && (
+                              <span className={`px-2 py-0.5 text-xs font-black rounded-lg ${isBEM ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-slate-100 text-slate-600'}`}>
+                                {year.badge}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-slate-400 font-medium mt-0.5">
+                            {yearSubjectCount} مواد دراسية مقررة
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-slate-400 group-hover:text-blue-600 transition-colors">
+                        <span className="text-xs font-bold hidden sm:inline">دخول المواد</span>
+                        <ChevronLeft size={20} />
+                      </div>
+                    </motion.button>
+                  );
+                })}
               </div>
             </motion.div>
           )}

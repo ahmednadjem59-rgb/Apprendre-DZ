@@ -1927,10 +1927,14 @@ export function getFallbackQuestions(
   }
 
   // 2. Add questions from the dedicated fallback pool for THIS EXACT SUBJECT
-  const subjectFallbackPool = FALLBACK_QUESTIONS[normalizedKey] || [];
+  // Only include general fallback pool if we don't have level/grade restriction or if grade pool is empty
+  const isTargetedSchool = levelId === 'primary' || levelId === 'middle';
+  const subjectFallbackPool = isTargetedSchool 
+    ? [] 
+    : (FALLBACK_QUESTIONS[normalizedKey] || []);
   
-  // STRICT ISOLATION: Pool consists ONLY of questions from this specific subject
-  let pool = [...gradeSpecificPool, ...subjectFallbackPool];
+  // STRICT ISOLATION: Pool consists of questions for this grade, or subject fallback if non-grade-targeted
+  let pool = gradeSpecificPool.length > 0 ? [...gradeSpecificPool] : [...subjectFallbackPool];
 
   // If a specific lesson is requested, prioritize questions matching this lesson
   if (lessonTitle) {
