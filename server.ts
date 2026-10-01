@@ -18,8 +18,8 @@ function getGeminiClient(): GoogleGenAI | null {
 
 // Recommended models prioritizing standard text generation models that are responsive and fast
 const CANDIDATE_MODELS = [
-  "gemini-3.1-flash-lite",
   "gemini-3.8-flash",
+  "gemini-3.1-flash-lite",
   "gemini-flash-latest"
 ];
 

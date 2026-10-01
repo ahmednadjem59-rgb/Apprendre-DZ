@@ -201,3 +201,58 @@ export function saveDailyAnswered(id: string, text: string) {
     console.warn("Could not save answered question to localStorage:", e);
   }
 }
+
+/**
+ * Calculates weekly Thursday contest timing, status, and dates:
+ * - Weekly contest is open strictly on Thursdays from 14:00 to 22:00.
+ * - Each participant can participate once every Thursday.
+ * - At the end of the competition (Thursday 22:00 onwards), the winning participant is automatically rewarded with 100 points!
+ */
+export function getContestThursdayInfo(now: Date = new Date()) {
+  const day = now.getDay(); // 0: Sun, 1: Mon, 2: Tue, 3: Wed, 4: Thu, 5: Fri, 6: Sat
+  const hour = now.getHours();
+  const isThursday = day === 4;
+  const isContestHour = hour >= 14 && hour < 22;
+  const isContestActive = isThursday && isContestHour;
+  const todayStr = now.toISOString().split('T')[0];
+
+  // Most recent completed Thursday contest date
+  let lastCompletedThursdayDate = '';
+  if (isThursday) {
+    if (hour >= 22) {
+      lastCompletedThursdayDate = todayStr;
+    } else {
+      const prevThu = new Date(now);
+      prevThu.setDate(now.getDate() - 7);
+      lastCompletedThursdayDate = prevThu.toISOString().split('T')[0];
+    }
+  } else {
+    const daysSinceLastThu = (day - 4 + 7) % 7;
+    const lastThu = new Date(now);
+    lastThu.setDate(now.getDate() - daysSinceLastThu);
+    lastCompletedThursdayDate = lastThu.toISOString().split('T')[0];
+  }
+
+  // Active or relevant contest date to display
+  const relevantContestDate = isContestActive ? todayStr : lastCompletedThursdayDate;
+
+  // Next Thursday contest start time
+  const nextThursday = new Date(now);
+  let daysToAdd = (4 + 7 - day) % 7;
+  if (daysToAdd === 0 && hour >= 22) {
+    daysToAdd = 7;
+  }
+  nextThursday.setDate(now.getDate() + daysToAdd);
+  nextThursday.setHours(14, 0, 0, 0);
+
+  return {
+    isThursday,
+    isContestHour,
+    isContestActive,
+    todayStr,
+    lastCompletedThursdayDate,
+    relevantContestDate,
+    hasContestEnded: isThursday ? hour >= 22 : true,
+    nextContestDate: nextThursday
+  };
+}

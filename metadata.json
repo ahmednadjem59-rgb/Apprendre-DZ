@@ -1,6 +1,6 @@
 {
   "name": "Apprendre DZ",
-  "description": "موقع Apprendre DZ يقدم أفضل الدروس والملخصات والتمارين التفاعلية في الجزائر للطورين الابتدائي والمتوسط.",
+  "description": "منصة Apprendre DZ توفر الدروس والتمارين لطلاب التعليم الابتدائي والمتوسط في الجزائر.",
   "requestFramePermissions": ["camera", "microphone"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

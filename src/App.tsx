@@ -116,7 +116,7 @@ import { generateInstantLessonArticle } from './data/curriculumLessonsContent';
 import { Level, Subject, Question, TrackData, Difficulty, CustomQuestion, CustomLesson } from './types';
 import { generateQuestions, generateStudyPlan, generateContestQuestions, generate50WeeklyContestQuestions, generateLesson, generateRevision, generateLessonIndex, getInstantLessonContent, getInstantRevisionContent } from './services/contentService';
 import { getFallbackQuestions, get50WeeklyContestQuestions, getSubjectSlug, normalizeSubjectKey } from './data/fallbackQuestions';
-import { cleanQuestionText, shuffleAndBalanceQuestions, getDailyAnsweredSet, saveDailyAnswered, getTodayDateString } from './utils/questionHelpers';
+import { cleanQuestionText, shuffleAndBalanceQuestions, getDailyAnsweredSet, saveDailyAnswered, getTodayDateString, getContestThursdayInfo } from './utils/questionHelpers';
 import Markdown from 'react-markdown';
 import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
 import { PrivacyPolicy } from './components/PrivacyPolicy';
@@ -551,13 +551,14 @@ export default function App() {
 
   // Listen to Thursday Contest Leaderboard
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
+    const info = getContestThursdayInfo();
     const q = query(collection(db, 'contest_participants'), orderBy('points', 'desc'), limit(50));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const participants: any[] = [];
+      const currentContestDate = getContestThursdayInfo().relevantContestDate;
       snapshot.forEach(docSnap => {
         const data = docSnap.data();
-        if (data.contestDate === today || !data.contestDate) {
+        if (data.contestDate === currentContestDate || data.contestDate === info.todayStr || !data.contestDate) {
           participants.push({
             id: docSnap.id,
             userId: data.userId || docSnap.id,
@@ -568,7 +569,7 @@ export default function App() {
             totalAnswered: typeof data.totalAnswered === 'number' ? data.totalAnswered : 0,
             completed50: Boolean(data.completed50 || (data.totalAnswered && data.totalAnswered >= 50)),
             studentId: data.studentId || null,
-            lastDate: data.contestDate || today,
+            lastDate: data.contestDate || currentContestDate,
             status: data.status || 'in_progress',
             isExclude: (data.name || '') === 'DJEKLIL KHADIJA'
           });
@@ -2049,7 +2050,7 @@ export default function App() {
   const [rewardedForShareToday, setRewardedForShareToday] = useState(false);
   const [showAuthMenu, setShowAuthMenu] = useState(false);
   const [contestRound, setContestRound] = useState(1);
-  const [timeLeft, setTimeLeft] = useState(5);
+  const [timeLeft, setTimeLeft] = useState(10);
   const [onlineCount, setOnlineCount] = useState<number>(0);
   const [activeInfoModal, setActiveInfoModal] = useState<'help' | 'about' | null>(null);
 
@@ -2413,37 +2414,24 @@ export default function App() {
   useEffect(() => {
     const updateContestTime = () => {
       const now = new Date();
-      const day = now.getDay(); // 0 is Sunday, 4 is Thursday
-      const hour = now.getHours();
+      const info = getContestThursdayInfo(now);
       
-      const isThursday = day === 4;
-      const isActiveRange = hour >= 14 && hour < 22;
-      
-      const today = new Date().toISOString().split('T')[0];
-      const alreadyPlayed = lastWeeklyContestDate === today;
+      const alreadyPlayed = (lastWeeklyContestDate === info.todayStr) || (user?.uid ? localStorage.getItem('lastWeeklyContestDate_' + user.uid) === info.todayStr : false);
       const isOwner = isUserAdmin(user?.email, userRole);
 
-      setIsContestActive(isThursday && isActiveRange);
+      setIsContestActive(info.isContestActive);
 
-      let nextThursday = new Date();
-      let daysToAdd = (4 + 7 - now.getDay()) % 7;
-      if (daysToAdd === 0 && now.getHours() >= 22) {
-        daysToAdd = 7;
-      }
-      nextThursday.setDate(now.getDate() + daysToAdd);
-      nextThursday.setHours(14, 0, 0, 0);
-
-      const diff = nextThursday.getTime() - now.getTime();
+      const diff = info.nextContestDate.getTime() - now.getTime();
       const d = Math.floor(diff / (1000 * 60 * 60 * 24));
       const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
       const s = Math.floor((diff % (1000 * 60)) / 1000);
       
-      if (isThursday && isActiveRange) {
+      if (info.isContestActive) {
         if (alreadyPlayed && !isOwner) {
-          setTimeUntilNextContest('لقد شاركت في مسابقة الأسبوع بنجاح!');
+          setTimeUntilNextContest('لقد شاركت في مسابقة هذا الأسبوع بنجاح (مشاركة واحدة كل خميس)');
         } else {
-          setTimeUntilNextContest('المسابقة جارية الآن!');
+          setTimeUntilNextContest('المسابقة جارية الآن (تغلق 22:00)!');
         }
       } else {
         if (d > 0) {
@@ -2466,63 +2454,65 @@ export default function App() {
     return isContestActive;
   }, [isContestActive, user, userRole]);
 
-  // Contest Close Logic (Thursday 22:00)
+  // Contest Close Logic (Thursday 22:00 onwards: Automatic 100 Points Awarding to Winner)
   const [winnerAnnounced, setWinnerAnnounced] = useState(false);
   useEffect(() => {
     const checkContestEnd = async () => {
       const now = new Date();
-      const isThursday = now.getDay() === 4;
-      const hours = now.getHours();
-      const today = now.toISOString().split('T')[0];
+      const info = getContestThursdayInfo(now);
       
-      // If it's 22:00 (10 PM) or after on Thursday, determine the winner(s)
-      if (isThursday && hours >= 22 && !winnerAnnounced) {
-        if (contestLeaderboard.length > 0) {
-          const topCorrect = contestLeaderboard[0].correctAnswers || 0;
-          const topPoints = contestLeaderboard[0].points || 0;
+      // If the contest has ended for this week's Thursday (22:00 onwards or following days)
+      if (info.hasContestEnded && info.lastCompletedThursdayDate) {
+        try {
+          const winnerDocRef = doc(db, 'weekly_contest_config', 'current_thursday_winner');
+          const winnerSnap = await getDoc(winnerDocRef);
+          const winnerData = winnerSnap.exists() ? winnerSnap.data() : null;
 
-          // Find all candidates tied with top correct answers
-          const tiedTop = contestLeaderboard.filter(c => 
-            (c.correctAnswers || 0) === topCorrect && (c.points || 0) === topPoints
-          );
+          // If winner for this completed contest has not been crowned/rewarded yet:
+          if (!winnerData?.isAnnounced || winnerData?.contestDate !== info.lastCompletedThursdayDate || !winnerData?.rewardAwarded) {
+            // Find candidates for this contest
+            const candidates = contestLeaderboard.filter(c => c.lastDate === info.lastCompletedThursdayDate || !c.lastDate);
 
-          let finalWinners: typeof contestLeaderboard = [];
-          let isTieCrowned = false;
+            if (candidates.length > 0) {
+              const topCorrect = candidates[0].correctAnswers || 0;
+              const topPoints = candidates[0].points || 0;
 
-          // Rule: If 2 or more tied and ALL completed 50 questions -> BOTH/ALL are crowned!
-          // If they did not complete 50 questions, the #1 on the leaderboard is awarded the prize!
-          if (tiedTop.length > 1) {
-            const allAnswered50 = tiedTop.every(c => c.completed50 || (c.totalAnswered || 0) >= 50);
-            if (allAnswered50) {
-              finalWinners = tiedTop;
-              isTieCrowned = true;
-            } else {
-              finalWinners = [tiedTop[0]];
-            }
-          } else {
-            finalWinners = [contestLeaderboard[0]];
-          }
-          
-          try {
-            const winnerDocRef = doc(db, 'weekly_contest_config', 'current_thursday_winner');
-            const winnerSnap = await getDoc(winnerDocRef);
-            const winnerData = winnerSnap.exists() ? winnerSnap.data() : null;
+              // Find all candidates tied with top correct answers and top points
+              const tiedTop = candidates.filter(c => 
+                (c.correctAnswers || 0) === topCorrect && (c.points || 0) === topPoints
+              );
 
-            if (!winnerData?.isAnnounced || winnerData?.contestDate !== today) {
+              let finalWinners: typeof candidates = [];
+              let isTieCrowned = false;
+
+              // Rule: If 2 or more tied and ALL completed 50 questions -> BOTH/ALL are crowned!
+              // Otherwise, the #1 on the leaderboard is awarded the prize!
+              if (tiedTop.length > 1) {
+                const allAnswered50 = tiedTop.every(c => c.completed50 || (c.totalAnswered || 0) >= 50);
+                if (allAnswered50) {
+                  finalWinners = tiedTop;
+                  isTieCrowned = true;
+                } else {
+                  finalWinners = [tiedTop[0]];
+                }
+              } else {
+                finalWinners = [candidates[0]];
+              }
+              
               setWinnerAnnounced(true);
 
-              // Award 100 bonus points to each crowned winner
+              // 1. Automatically reward 100 points to each crowned winner's user account in Firestore
               for (const w of finalWinners) {
                 const wUid = w.userId || w.id || w.studentId;
                 if (wUid) {
                   const winnerRef = doc(db, 'users', wUid);
                   await updateDoc(winnerRef, {
                     totalPoints: increment(100)
-                  }).catch(e => console.warn("Could not award winner bonus points:", e));
+                  }).catch(e => console.warn("Could not auto-award winner 100 bonus points:", e));
                 }
               }
 
-              // If current user is one of the winners, immediately reflect +100 in state
+              // 2. If current user is one of the winners, immediately reflect +100 in state
               if (user?.uid && finalWinners.some(w => (w.userId || w.id || w.studentId) === user.uid)) {
                 setTotalPoints(prev => prev + 100);
               }
@@ -2530,12 +2520,12 @@ export default function App() {
               const winnerNamesStr = finalWinners.map(w => w.name).join(' و ');
               showNotification(
                 isTieCrowned
-                  ? `🎊 مبروك للأبطال (${winnerNamesStr})! تعادلا في الصدارة وتوجا معاً بالمركز الأول (+100 نقطة أضيفت مباشرة لكل منهما)! 👑`
-                  : `🎊 مبروك للمتسابق ${finalWinners[0].name}! تصدر المرتبة الأولى وربح 100 نقطة أضيفت مباشرة إلى حسابه! 👑`,
+                  ? `🎊 مبروك للأبطال (${winnerNamesStr})! تعادلا في الصدارة وتوجا معاً بالمركز الأول (+100 نقطة أضيفت تلقائياً لكل منهما)! 👑`
+                  : `🎊 مبروك للمتسابق ${finalWinners[0].name}! تصدر المرتبة الأولى في مسابقة الخميس وربح 100 نقطة أضيفت تلقائياً إلى حسابه! 👑`,
                 'success'
               );
 
-              // Set official weekly winner config
+              // 3. Set official weekly winner config in Firestore with 100 points reward status
               await setDoc(winnerDocRef, {
                 isTie: isTieCrowned,
                 winnerId: finalWinners[0].userId || finalWinners[0].id,
@@ -2547,8 +2537,10 @@ export default function App() {
                 score: finalWinners[0].points || 0,
                 correctAnswers: finalWinners[0].correctAnswers || 0,
                 totalAnswered: finalWinners[0].totalAnswered || 50,
+                rewardPoints: 100,
+                rewardAwarded: true,
                 isAnnounced: true,
-                contestDate: today,
+                contestDate: info.lastCompletedThursdayDate,
                 announcedAt: new Date().toISOString(),
                 winners: finalWinners.map(w => ({
                   userId: w.userId || w.id,
@@ -2561,22 +2553,22 @@ export default function App() {
                 }))
               }, { merge: true });
             }
-          } catch (e) {
-            console.error("Error rewarding winner at 22:00:", e instanceof Error ? e.message : e);
           }
+        } catch (e) {
+          console.error("Error rewarding winner at contest close:", e instanceof Error ? e.message : e);
         }
       }
       
-      // Reset announcement state if it's no longer Thursday or before 22:00
-      if (!isThursday || hours < 22) {
+      // Reset announcement state if contest is actively running again on a new Thursday
+      if (info.isContestActive) {
         setWinnerAnnounced(false);
       }
     };
 
     checkContestEnd();
-    const interval = setInterval(checkContestEnd, 30000); // Check every 30 seconds
+    const interval = setInterval(checkContestEnd, 20000); // Check every 20 seconds
     return () => clearInterval(interval);
-  }, [contestLeaderboard, winnerAnnounced]);
+  }, [contestLeaderboard, user?.uid]);
 
   // Quiz Countdown Timer for Contest
   useEffect(() => {
@@ -3809,8 +3801,12 @@ export default function App() {
     // Check for elimination in contest (2 mistakes = out)
     if (isContestQuiz && !isCorrect && currentMistakes.length >= 2) {
       const today = new Date().toISOString().split('T')[0];
-      showNotification('لقد تم إقصاؤك من المسابقة! (الخطأ الثاني)', 'info');
+      showNotification('❌ لقد تم إقصاؤك من المسابقة الأسبوعية بعد ارتكاب خطأين (نظام خطأين = إقصاء)!', 'info');
       setLastWeeklyContestDate(today);
+      if (user?.uid) {
+        localStorage.setItem('lastWeeklyContestDate_' + user.uid, today);
+      }
+      localStorage.setItem('lastWeeklyContestDate', today);
       
       // Sync to database
       if (user) {
@@ -3827,7 +3823,7 @@ export default function App() {
             points: contestPoints,
             correctAnswers: newUserAnswers.filter(Boolean).length,
             totalAnswered: newUserAnswers.length,
-            completed50: newUserAnswers.length >= 50,
+            completed50: false,
             updatedAt: new Date().toISOString()
           }).catch(console.warn);
         } catch (e) {
@@ -3844,7 +3840,7 @@ export default function App() {
       const nextIndex = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIndex);
       setShowFeedback(null);
-      setTimeLeft(5);
+      setTimeLeft(10);
       
       if (isContestQuiz) {
         const newRound = nextIndex >= 25 ? 2 : 1;
@@ -3998,7 +3994,7 @@ export default function App() {
             }));
             setCurrentQuestionIndex(prev => prev + 1);
             setShowFeedback(null);
-            setTimeLeft(5);
+            setTimeLeft(10);
             return;
           }
         }
@@ -4053,7 +4049,7 @@ export default function App() {
     setShowFeedback({ correct: isCorrect, answer: index, question: targetQ });
 
     if (index === -1 && isContestQuiz) {
-      showNotification('انتهى الوقت! حاول أن تكون أسرع في السؤال القادم ⚡', 'info');
+      showNotification('انتهى الوقت (10 ثوان)! تم احتساب السؤال خاطئاً ⏳', 'info');
     }
     
     // Reward for the answer: +5 for correct, -10 for wrong answer
@@ -4099,11 +4095,19 @@ export default function App() {
     const currentMistakeObj = !isCorrect ? { 
       question: targetQ.text, 
       correctAnswer: targetQ.options[targetQ.correctAnswer], 
-      userAnswer: index >= 0 ? targetQ.options[index] : 'انتهى الوقت'
+      userAnswer: index >= 0 ? targetQ.options[index] : 'انتهى الوقت (10 ثوان)'
     } : null;
 
     if (currentMistakeObj) {
       setMistakes(prev => [...prev, currentMistakeObj]);
+      if (isContestQuiz) {
+        const mistakeCount = mistakes.length + 1;
+        if (mistakeCount >= 2) {
+          showNotification('❌ الخطأ الثاني! تم إقصاؤك من المسابقة الأسبوعية (نظام خطأين = إقصاء).', 'info');
+        } else {
+          showNotification('⚠️ الخطأ الأول! بقيت لك فرصة واحدة فقط قبل الإقصاء النهائي من المسابقة.', 'info');
+        }
+      }
     }
 
     // Save answered question to daily tracking (localStorage and state) so it never repeats
@@ -4181,8 +4185,8 @@ export default function App() {
 
     setUserAnswers(newUserAnswers);
 
-    const transitionDelay = 5000;
     const updatedMistakesList = currentMistakeObj ? [...mistakes, currentMistakeObj] : mistakes;
+    const transitionDelay = (isContestQuiz && updatedMistakesList.length >= 2) ? 2000 : 3500;
 
     transitionTimeoutRef.current = setTimeout(async () => {
       await moveToNextQuestion(isCorrect, newUserAnswers, updatedMistakesList);
@@ -4207,14 +4211,32 @@ export default function App() {
   };
 
   const handleStartContest = async () => {
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Safety check: Only owner can play multiple times
-    const isOwner = isUserAdmin(user?.email, userRole);
-    if (lastWeeklyContestDate === today && !isOwner) {
-      showNotification('لقد شاركت في مسابقة هذا الأسبوع بالفعل!', 'info');
+    // Safety check 1: Must be logged in to participate in the official weekly competition
+    if (!user) {
+      showNotification('يرجى تسجيل الدخول أولاً للمشاركة في مسابقة الخميس الأسبوعية واحتساب نتيجتك والمنافسة على الـ 100 نقطة!', 'info');
+      setView('auth');
       return;
     }
+
+    const now = new Date();
+    const info = getContestThursdayInfo(now);
+    const today = info.todayStr;
+    
+    // Safety check 2: Strict single participation per Thursday rule
+    const isOwner = isUserAdmin(user?.email, userRole);
+    const alreadyPlayed = (lastWeeklyContestDate === today) || (user?.uid ? localStorage.getItem('lastWeeklyContestDate_' + user.uid) === today : false);
+
+    if (alreadyPlayed && !isOwner) {
+      showNotification('لقد شاركت في مسابقة هذا الأسبوع بالفعل! يُسمح بمشاركة واحدة فقط كل يوم خميس لضمان تكافؤ الفرص.', 'info');
+      return;
+    }
+
+    // Mark as participated immediately so reload cannot grant another attempt
+    setLastWeeklyContestDate(today);
+    if (user?.uid) {
+      localStorage.setItem('lastWeeklyContestDate_' + user.uid, today);
+    }
+    localStorage.setItem('lastWeeklyContestDate', today);
 
     const levelId = selectedLevelId || (LEVELS.length > 0 ? LEVELS[0].id : 'all');
     const currentKey = `weekly-contest-${levelId}`;
@@ -4268,7 +4290,7 @@ export default function App() {
     setLastWeeklyContestDate(today);
     setIsContestQuiz(true);
     setContestRound(1);
-    setTimeLeft(5);
+    setTimeLeft(10);
     setContestPoints(0); 
     setSelectedDifficulty(null);
     setCurrentQuestionIndex(0);
@@ -8357,21 +8379,24 @@ export default function App() {
                           
                           {/* Timer Display */}
                           <div className="flex flex-col items-center">
-                              <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-black text-sm mb-1 ${timeLeft <= 10 ? 'bg-rose-500 text-white animate-pulse' : 'bg-white text-emerald-600 border border-emerald-100 shadow-sm'}`}>
-                                <Zap size={14} className={timeLeft <= 10 ? 'animate-bounce' : ''} />
-                                <span dir="ltr">{timeLeft}s</span>
+                              <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full font-black text-sm mb-1 ${timeLeft <= 3 ? 'bg-rose-500 text-white animate-pulse' : 'bg-white text-emerald-800 border border-emerald-200 shadow-sm'}`}>
+                                <Zap size={14} className={timeLeft <= 3 ? 'animate-bounce' : 'text-amber-500'} />
+                                <span dir="ltr">{timeLeft}s / 10s</span>
                               </div>
-                              <p className="text-[9px] font-black text-emerald-600/50 uppercase tracking-tighter">باقي</p>
+                              <p className="text-[9px] font-black text-emerald-700/70 uppercase tracking-tighter">وقت السؤال (10 ثوان)</p>
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-bold text-emerald-600 ml-2">الفرص:</span>
-                            <div className="flex gap-1">
+                            <div className="text-right">
+                              <span className="text-xs font-black text-emerald-900 block">الفرص المتبقية:</span>
+                              <span className="text-[9px] font-bold text-slate-500 block">خطآن = إقصاء</span>
+                            </div>
+                            <div className="flex gap-1.5">
                               {[0, 1].map((i) => (
                                 <Heart 
                                   key={i}
-                                  size={18} 
-                                  className={i < (2 - mistakes.length) ? "fill-rose-500 text-rose-500" : "text-slate-200 fill-slate-100"} 
+                                  size={22} 
+                                  className={i < (2 - mistakes.length) ? "fill-rose-500 text-rose-500 drop-shadow-sm transition-all" : "text-slate-200 fill-slate-100 transition-all scale-90 opacity-60"} 
                                 />
                               ))}
                             </div>
@@ -8659,6 +8684,10 @@ export default function App() {
                       if (myScore < oppScore) return "حظ أوفر! لقد خسر التحدي 💔";
                       return "تعادل رائع! ✨";
                     })()
+                  ) : isContestQuiz && mistakes.length >= 2 ? (
+                    <span className="text-rose-600">تم إقصاؤك من المسابقة 💔</span>
+                  ) : isContestQuiz ? (
+                    <span className="text-emerald-600">مبروك! أتممت المسابقة 🏆</span>
                   ) : "أداء ممتاز!"}
                 </h2>
                 <p className="text-slate-500 font-bold">
@@ -8671,7 +8700,11 @@ export default function App() {
                       }
                       return `انتهى التحدي بينك وبين ${oppName}`;
                     })()
-                  ) : `لقد أتممت ${isContestQuiz ? 'المسابقة الأسبوعية' : `اختبار ${selectedSubject?.name}`}`}
+                  ) : isContestQuiz && mistakes.length >= 2 ? (
+                    "تم إقصاؤك من مسابقة هذا الأسبوع بعد ارتكاب خطأين (نظام خطأين = إقصاء). تم تسجيل إجاباتك ونقاطك في لوحة المتصدرين."
+                  ) : isContestQuiz ? (
+                    "لقد أتممت بنجاح جميع أسئلة المسابقة الأسبوعية! تم تسجيل نتيجتك للمنافسة على المركز الأول وتتويج الـ 100 نقطة."
+                  ) : `لقد أتممت اختبار ${selectedSubject?.name}`}
                 </p>
               </div>
 
@@ -8875,7 +8908,17 @@ export default function App() {
                     <Swords size={24} />
                     <span>تحدي جديد في ساحة الأصدقاء ⚔️</span>
                   </motion.button>
-                ) : !isContestQuiz && selectedSubject && (
+                ) : isContestQuiz ? (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setView('contest')}
+                    className="w-full py-5 bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-slate-950 rounded-3xl font-black text-xl shadow-xl shadow-amber-200 hover:from-amber-600 hover:to-yellow-500 transition-all flex items-center justify-center gap-3 cursor-pointer border border-amber-300"
+                  >
+                    <Trophy size={24} />
+                    <span>عرض ترتيبك في لوحة متسابقي الخميس 🏆</span>
+                  </motion.button>
+                ) : selectedSubject && (
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -9573,20 +9616,38 @@ export default function App() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-right">
                     <div className="bg-blue-50 p-4 rounded-2xl border border-blue-100 space-y-1">
                       <p className="text-xs font-black text-blue-900 flex items-center gap-1.5 justify-end">
-                        <span>المكافأة الأولى: نقاط المسابقة</span>
-                        <Sparkles size={16} className="text-blue-600" />
+                        <span>قاعدة المسابقة: مشاركة واحدة كل خميس</span>
+                        <Clock size={16} className="text-blue-600" />
                       </p>
                       <p className="text-[11px] text-blue-700 font-bold leading-relaxed">
-                        جمع النقاط الفورية عن كل إجابة صحيحة في الـ 50 سؤالاً لرفع الترتيب العام.
+                        تفتح المسابقة كل يوم خميس من 14:00 إلى 22:00. يُسمح لكل متسابق بمحاولة واحدة فقط أسبوعياً لضمان تكافؤ الفرص والعدالة.
                       </p>
                     </div>
                     <div className="bg-gradient-to-r from-amber-50 to-yellow-50 p-4 rounded-2xl border border-amber-200 space-y-1">
                       <p className="text-xs font-black text-amber-900 flex items-center gap-1.5 justify-end">
-                        <span>المكافأة الكبرى: 100 نقطة ذهبية للأول 👑</span>
+                        <span>المكافأة الكبرى: تكريم الفائز تلقائياً بـ 100 نقطة 👑</span>
                         <Crown size={16} className="text-amber-600" />
                       </p>
                       <p className="text-[11px] text-amber-800 font-bold leading-relaxed">
-                        الترتيب باللوحة يعتمد على **أكبر عدد إجابات صحيحة**. عند إعلان النتائج وإغلاق المسابقة، يتوج الأول في القائمة ويربح **100 نقطة مباشرة في حسابه**.
+                        عند نهاية المسابقة في تمام الساعة 22:00، يتم تتويج المتسابق صاحب المركز الأول تلقائياً وتكريمه بـ **100 نقطة ذهبية تضاف مباشرة لحسابه**.
+                      </p>
+                    </div>
+                    <div className="bg-rose-50 p-4 rounded-2xl border border-rose-100 space-y-1">
+                      <p className="text-xs font-black text-rose-900 flex items-center gap-1.5 justify-end">
+                        <span>قاعدة الإقصاء: خطآن في الأسئلة = إقصاء فوري ❌</span>
+                        <Heart size={16} className="text-rose-600 fill-rose-600" />
+                      </p>
+                      <p className="text-[11px] text-rose-700 font-bold leading-relaxed">
+                        لديك فرصتان فقط: ارتكاب خطأين في الإجابة يؤدي إلى الإقصاء فوراً واعتماد النتيجة والنقاط المسجلة حتى لحظة الإقصاء.
+                      </p>
+                    </div>
+                    <div className="bg-purple-50 p-4 rounded-2xl border border-purple-100 space-y-1">
+                      <p className="text-xs font-black text-purple-900 flex items-center gap-1.5 justify-end">
+                        <span>سرعة الإجابة: 10 ثوانٍ لكل سؤال ⚡</span>
+                        <Zap size={16} className="text-purple-600" />
+                      </p>
+                      <p className="text-[11px] text-purple-700 font-bold leading-relaxed">
+                        الوقت المتاح لكل محاولة على أي سؤال هو 10 ثوانٍ فقط. نفاد العداد دون إجابة يحتسب كخطأ!
                       </p>
                     </div>
                   </div>
@@ -9615,19 +9676,19 @@ export default function App() {
                       </div>
                       <p className="text-xs font-bold text-slate-900 leading-relaxed bg-white/40 p-3 rounded-xl">
                         {currentThursdayWinner.isTie 
-                          ? '✨ تهانينا الحارة لأبطال مسابقة الخميس! حققوا أعلى نتيجة وتصدروا القائمة، وتم منح كل منهم 100 نقطة أضيفت مباشرة إلى رصيد حسابه 💎.'
-                          : '✨ تهانينا الحارة لبطل مسابقة الخميس! تصدر المركز الأول في القائمة وربح 100 نقطة أضيفت مباشرة إلى رصيد حسابه 💎.'}
+                          ? '✨ تهانينا الحارة لأبطال مسابقة الخميس! حققوا أعلى نتيجة وتصدروا القائمة، وتم تكريم كل منهم تلقائياً بـ 100 نقطة أودعت في رصيده 💎.'
+                          : '✨ تهانينا الحارة لبطل مسابقة الخميس! تصدر المركز الأول في المسابقة وتم تكريمه تلقائياً بـ 100 نقطة أضيفت مباشرة إلى رصيد حسابه 💎.'}
                       </p>
                     </div>
                   )}
 
-                  <div className="space-y-4">
+                  <div id="contest-leaderboard" className="space-y-4 scroll-mt-6">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-black text-slate-500">
-                        عدد المشاركين اليوم: {contestLeaderboard.length}
+                        عدد المشاركين: {contestLeaderboard.length}
                       </span>
                       <span className="text-xs font-black text-amber-600 flex items-center gap-1">
-                        <span>لوحة المتسابقين المباشرة (الترتيب بأكبر مجيب أسئلة)</span>
+                        <span>لوحة المتسابقين الرسمية (الترتيب بأكبر عدد إجابات صحيحة)</span>
                         <Sparkles size={14} />
                       </span>
                     </div>
@@ -9694,7 +9755,7 @@ export default function App() {
                     <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-center gap-3 text-right">
                       <div className="text-amber-600"><Target size={20} /></div>
                       <p className="text-xs font-bold text-amber-700 leading-relaxed">
-                        المسابقة تفتح كل يوم خميس من 14:00 إلى 22:00. استعد لتكون الفائز بالمركز الأول وتنال 100 نقطة مباشرة في حسابك!
+                        المسابقة تفتح كل يوم خميس من 14:00 إلى 22:00. استعد للمشاركة (محاولة واحدة فقط) والمنافسة على الفوز بالمركز الأول والتتويج بـ 100 نقطة تلقائياً!
                       </p>
                     </div>
                   )}
@@ -9705,14 +9766,12 @@ export default function App() {
                   whileHover={{ y: -5, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
-                    // Logic for fast challenge - can start a special quiz
                     setSelectedDifficulty('medium');
                     const primaryLevel = LEVELS.find(l => l.id === 'primary') || LEVELS[0];
                     const firstYear = primaryLevel.years[0];
                     const randomSubject = firstYear.subjects[0];
                     setSelectedSubject(randomSubject);
                     setIsContestQuiz(false);
-                    // For now, let's treat it as a hard quiz that rewards quick answers
                     setView('quiz');
                   }}
                   className="group relative overflow-hidden bg-white p-8 rounded-[3rem] border-2 border-slate-100 shadow-xl shadow-blue-900/5 text-right flex flex-col items-end gap-4 transition-all hover:border-blue-200"
@@ -9733,28 +9792,34 @@ export default function App() {
                   </div>
                 </motion.button>
 
-
-
                 {/* Weekly Competition Card */}
                 <motion.button
                   whileHover={{ y: -5, scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => {
                     if (!dataLoaded) return;
+                    if (!user) {
+                      showNotification('يرجى تسجيل الدخول أولاً للمشاركة في مسابقة الخميس الأسبوعية والمنافسة على 100 نقطة!', 'info');
+                      setView('auth');
+                      return;
+                    }
                     const isOwnerEmail = isUserAdmin(user?.email, userRole);
-                    const today = new Date().toISOString().split('T')[0];
-                    const participated = lastWeeklyContestDate === today;
+                    const now = new Date();
+                    const info = getContestThursdayInfo(now);
+                    const today = info.todayStr;
+                    const participated = (lastWeeklyContestDate === today) || (user?.uid ? localStorage.getItem('lastWeeklyContestDate_' + user.uid) === today : false);
 
                     if (isContestActive) {
                       if (participated && !isOwnerEmail) {
-                        showNotification('لقد شاركت في مسابقة هذا الأسبوع بالفعل! تفتح الجولة القادمة الخميس المقبل.', 'info');
+                        showNotification('لقد شاركت في مسابقة هذا الأسبوع بالفعل! يُسمح بمشاركة واحدة فقط كل يوم خميس لضمان تكافؤ الفرص.', 'info');
+                        document.getElementById('contest-leaderboard')?.scrollIntoView({ behavior: 'smooth' });
                       } else {
                         setContestCountdown(10);
                         setContestStarting(true);
                       }
                     }
                     else {
-                      showNotification("المسابقة الأسبوعية تفتح كل يوم خميس من 14:00 إلى 22:00", 'info');
+                      showNotification("المسابقة الأسبوعية تفتح كل يوم خميس من 14:00 إلى 22:00. يشارك كل متسابق مرة واحدة، وعند نهايتها يكرم الفائز تلقائياً بـ 100 نقطة!", 'info');
                     }
                   }}
                   className={`group relative overflow-hidden p-8 rounded-[3rem] border-2 text-right flex flex-col items-end gap-4 transition-all ${
@@ -9771,23 +9836,35 @@ export default function App() {
                   <div className="space-y-2">
                     <h3 className="text-2xl font-black text-slate-900">المسابقة الأسبوعية الكبرى (50 سؤال)</h3>
                     <p className="text-slate-500 font-bold text-sm leading-relaxed">
-                      تفتح كل يوم خميس من 14:00 إلى 22:00. تتضمن 50 سؤالاً: 25 سؤال ثقافة عامة + 25 سؤال دراسي من المنهاج الجزائري!
+                      تفتح كل يوم خميس من 14:00 إلى 22:00 (مشاركة واحدة لكل متسابق). لديك 10 ثوانٍ لكل سؤال، وارتكاب خطأين يؤدي للإقصاء الفوري. الفائز بالمركز الأول يكرم تلقائياً بـ 100 نقطة ذهبية!
                     </p>
                   </div>
                   <div className="w-full flex items-center justify-between flex-row-reverse">
                     <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                      isContestButtonActive ? ((lastWeeklyContestDate === new Date().toISOString().split('T')[0] && !isUserAdmin(user?.email, userRole)) ? 'bg-blue-100 text-blue-600' : 'bg-emerald-100 text-emerald-600') : 'bg-slate-200 text-slate-500'
+                      isContestButtonActive 
+                        ? (((lastWeeklyContestDate === new Date().toISOString().split('T')[0] || (user?.uid && localStorage.getItem('lastWeeklyContestDate_' + user.uid) === new Date().toISOString().split('T')[0])) && !isUserAdmin(user?.email, userRole)) 
+                            ? 'bg-blue-100 text-blue-700 border border-blue-200' 
+                            : 'bg-emerald-100 text-emerald-700 border border-emerald-200') 
+                        : 'bg-slate-200 text-slate-500'
                     }`}>
                       {isContestButtonActive 
-                        ? ((lastWeeklyContestDate === new Date().toISOString().split('T')[0] && !isUserAdmin(user?.email, userRole)) ? 'تمت المشاركة' : 'متاحة الآن') 
+                        ? (((lastWeeklyContestDate === new Date().toISOString().split('T')[0] || (user?.uid && localStorage.getItem('lastWeeklyContestDate_' + user.uid) === new Date().toISOString().split('T')[0])) && !isUserAdmin(user?.email, userRole)) 
+                            ? 'تمت المشاركة (مشاركة واحدة كل خميس) ✅' 
+                            : 'متاحة الآن (مشاركة واحدة فقط) ⚡') 
                         : 'غير متاحة حالياً'}
                     </div>
                     <div className={`flex items-center gap-2 font-black text-sm ${
-                      isContestButtonActive ? ((lastWeeklyContestDate === new Date().toISOString().split('T')[0] && !isUserAdmin(user?.email, userRole)) ? 'text-blue-600' : 'text-emerald-600 group-hover:gap-4') : 'text-slate-400'
+                      isContestButtonActive 
+                        ? (((lastWeeklyContestDate === new Date().toISOString().split('T')[0] || (user?.uid && localStorage.getItem('lastWeeklyContestDate_' + user.uid) === new Date().toISOString().split('T')[0])) && !isUserAdmin(user?.email, userRole)) 
+                            ? 'text-blue-600' 
+                            : 'text-emerald-600 group-hover:gap-4') 
+                        : 'text-slate-400'
                     } transition-all`}>
                       <span>{isContestButtonActive 
-                        ? ((lastWeeklyContestDate === new Date().toISOString().split('T')[0] && !isUserAdmin(user?.email, userRole)) ? 'انظر النتائج' : 'دخول المسابقة') 
-                        : (timeUntilNextContest.includes('تبدأ بعد') ? timeUntilNextContest : `تفتح الخميس المقبل`)}</span>
+                        ? (((lastWeeklyContestDate === new Date().toISOString().split('T')[0] || (user?.uid && localStorage.getItem('lastWeeklyContestDate_' + user.uid) === new Date().toISOString().split('T')[0])) && !isUserAdmin(user?.email, userRole)) 
+                            ? 'لقد شاركت اليوم - عرض الترتيب' 
+                            : 'دخول المسابقة الأسبوعية') 
+                        : (timeUntilNextContest.includes('تبدأ بعد') ? timeUntilNextContest : `تفتح كل خميس 14:00 - 22:00`)}</span>
                       <ChevronLeft size={18} />
                     </div>
                   </div>
@@ -10983,8 +11060,8 @@ export default function App() {
             isTie={Boolean(currentThursdayWinner?.isTie)}
             onClose={() => setShowThursdayWinnerModal(false)}
             onClaimReward={async () => {
-              setTotalPoints(prev => prev + 100);
-              if (user?.uid) {
+              if (!currentThursdayWinner?.rewardAwarded && user?.uid) {
+                setTotalPoints(prev => prev + 100);
                 try {
                   await updateDoc(doc(db, 'users', user.uid), {
                     totalPoints: increment(100)
@@ -10993,7 +11070,7 @@ export default function App() {
                   console.warn('Could not update points on claim:', e);
                 }
               }
-              showNotification('🎉 ألف مبروك! تم تأكيد إيداع 100 نقطة ذهبية في حسابك مباشرة! 💎', 'success');
+              showNotification('🎉 ألف مبروك! تم إيداع 100 نقطة ذهبية في حسابك تلقائياً لبطل مسابقة الخميس! 💎', 'success');
             }}
           />
         )}

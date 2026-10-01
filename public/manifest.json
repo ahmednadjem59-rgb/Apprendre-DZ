@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Apprendre DZ - المنصة التعليمية",
+  "name": "Apprendre DZ - منصة التعليم الابتدائي والمتوسط في الجزائر",
   "short_name": "Apprendre DZ",
-  "description": "المنصة التعليمية الجزائرية الأولى للتعلم التفاعلي والتحضير للامتحانات",
+  "description": "منصة Apprendre DZ توفر الدروس والتمارين لطلاب التعليم الابتدائي والمتوسط في الجزائر.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

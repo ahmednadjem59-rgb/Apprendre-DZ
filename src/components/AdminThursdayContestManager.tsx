@@ -216,7 +216,7 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
             </span>
             <h3 className="text-xl sm:text-2xl font-black text-slate-900">إدارة وتتويج بطل مسابقة الخميس</h3>
             <p className="text-xs text-slate-500 font-bold">
-              صاحب المركز الأول يفوز بـ 100 نقطة ذهبية تودع مباشرة في حسابه.
+              نظام المسابقة: 10 ثوانٍ للإجابة عن كل سؤال، ارتكاب خطأين يؤدي للإقصاء الفوري، والفائز بالمركز الأول يكرم بـ 100 نقطة ذهبية تودع في حسابه.
             </p>
           </div>
         </div>
