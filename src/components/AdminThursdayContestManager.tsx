@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Trophy, Crown, CheckCircle2, Gift } from 'lucide-react';
-import { collection, onSnapshot, query, orderBy, limit, doc, setDoc, updateDoc, increment } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, limit, doc, getDoc, setDoc, updateDoc, increment, arrayUnion } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 
 interface AdminThursdayContestManagerProps {
@@ -94,14 +94,24 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
     try {
       const today = new Date().toISOString().split('T')[0];
 
-      // 1. Directly award 100 points to each winner's user account in Firestore
+      // 1. Directly award 100 points to each winner's user account in Firestore ONLY IF NOT ALREADY REWARDED
       for (const w of finalWinners) {
         const userId = w.studentId || w.userId || w.id;
         if (userId) {
           try {
-            await updateDoc(doc(db, 'users', userId), {
-              totalPoints: increment(100)
-            });
+            const userRef = doc(db, 'users', userId);
+            const uSnap = await getDoc(userRef);
+            if (uSnap.exists()) {
+              const uData = uSnap.data();
+              const rewardedDates: string[] = Array.isArray(uData.rewardedWeeklyContestDates) ? uData.rewardedWeeklyContestDates : [];
+              if (!rewardedDates.includes(today) && uData.lastRewardedWeeklyContestDate !== today) {
+                await updateDoc(userRef, {
+                  totalPoints: increment(100),
+                  rewardedWeeklyContestDates: arrayUnion(today),
+                  lastRewardedWeeklyContestDate: today
+                });
+              }
+            }
           } catch (e) {
             console.warn('Could not update user document:', e);
           }
@@ -121,6 +131,8 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
         correctAnswers: finalWinners[0].correctAnswers || 0,
         totalAnswered: finalWinners[0].totalAnswered || 50,
         rewardPoints: 100,
+        rewardAwarded: true,
+        rewardedUserIds: finalWinners.map(w => w.userId || w.id),
         isAnnounced: true,
         contestDate: today,
         announcedAt: new Date().toISOString(),
@@ -156,18 +168,28 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
 
     setIsAnnouncing(true);
     try {
+      const today = new Date().toISOString().split('T')[0];
       const userId = contestant.studentId || contestant.userId || contestant.id;
       if (userId) {
         try {
-          await updateDoc(doc(db, 'users', userId), {
-            totalPoints: increment(100)
-          });
+          const userRef = doc(db, 'users', userId);
+          const uSnap = await getDoc(userRef);
+          if (uSnap.exists()) {
+            const uData = uSnap.data();
+            const rewardedDates: string[] = Array.isArray(uData.rewardedWeeklyContestDates) ? uData.rewardedWeeklyContestDates : [];
+            if (!rewardedDates.includes(today) && uData.lastRewardedWeeklyContestDate !== today) {
+              await updateDoc(userRef, {
+                totalPoints: increment(100),
+                rewardedWeeklyContestDates: arrayUnion(today),
+                lastRewardedWeeklyContestDate: today
+              });
+            }
+          }
         } catch (e) {
           console.warn('Could not update user document:', e);
         }
       }
 
-      const today = new Date().toISOString().split('T')[0];
       await setDoc(doc(db, 'weekly_contest_config', 'current_thursday_winner'), {
         isTie: false,
         winnerId: contestant.userId || contestant.id,
@@ -180,6 +202,8 @@ export const AdminThursdayContestManager: React.FC<AdminThursdayContestManagerPr
         correctAnswers: contestant.correctAnswers || 0,
         totalAnswered: contestant.totalAnswered || 50,
         rewardPoints: 100,
+        rewardAwarded: true,
+        rewardedUserIds: [userId].filter(Boolean),
         isAnnounced: true,
         contestDate: today,
         announcedAt: new Date().toISOString(),

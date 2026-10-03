@@ -103,7 +103,7 @@ export const ThursdayWinnerModal: React.FC<ThursdayWinnerModalProps> = ({
             className="w-full py-4 bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             <Zap size={18} />
-            <span>تأكيد استلام 100 نقطة ومتابعة التفوق</span>
+            <span>إغلاق ومتابعة التفوق (100 نقطة مضافة) 👏</span>
           </button>
         </div>
       </motion.div>

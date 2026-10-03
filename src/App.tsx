@@ -2154,10 +2154,11 @@ export default function App() {
           );
 
           if (isUserWinner && user?.uid) {
-            const sessionKey = 'thursday_winner_notified_' + user.uid + '_' + (conf.contestDate || '');
-            if (!sessionStorage.getItem(sessionKey)) {
+            const contestDate = conf.contestDate || '';
+            const localKey = 'thursday_winner_modal_seen_' + user.uid + '_' + contestDate;
+            if (!localStorage.getItem(localKey)) {
               setShowThursdayWinnerModal(true);
-              sessionStorage.setItem(sessionKey, 'true');
+              localStorage.setItem(localKey, 'true');
               showNotification(
                 conf.isTie 
                   ? '🏆 تهانينا الحارة! لقد حققت الصدارة وأتممت 50 سؤالاً وتوجت بطلاً معتمداً لمسابقة الخميس!'
@@ -2468,6 +2469,11 @@ export default function App() {
           const winnerSnap = await getDoc(winnerDocRef);
           const winnerData = winnerSnap.exists() ? winnerSnap.data() : null;
 
+          // If winner for this completed contest is ALREADY announced and rewarded for this date, STOP IMMEDIATELY!
+          if (winnerData?.isAnnounced && winnerData?.contestDate === info.lastCompletedThursdayDate && winnerData?.rewardAwarded) {
+            return;
+          }
+
           // If winner for this completed contest has not been crowned/rewarded yet:
           if (!winnerData?.isAnnounced || winnerData?.contestDate !== info.lastCompletedThursdayDate || !winnerData?.rewardAwarded) {
             // Find candidates for this contest
@@ -2500,21 +2506,39 @@ export default function App() {
               }
               
               setWinnerAnnounced(true);
+              const contestDateStr = info.lastCompletedThursdayDate;
 
-              // 1. Automatically reward 100 points to each crowned winner's user account in Firestore
+              // 1. Award 100 points to each crowned winner ONLY IF NOT ALREADY REWARDED for this contest date!
               for (const w of finalWinners) {
                 const wUid = w.userId || w.id || w.studentId;
                 if (wUid) {
-                  const winnerRef = doc(db, 'users', wUid);
-                  await updateDoc(winnerRef, {
-                    totalPoints: increment(100)
-                  }).catch(e => console.warn("Could not auto-award winner 100 bonus points:", e));
-                }
-              }
+                  try {
+                    const winnerRef = doc(db, 'users', wUid);
+                    const wSnap = await getDoc(winnerRef);
+                    if (wSnap.exists()) {
+                      const uData = wSnap.data();
+                      const rewardedDates: string[] = Array.isArray(uData.rewardedWeeklyContestDates) ? uData.rewardedWeeklyContestDates : [];
+                      if (!rewardedDates.includes(contestDateStr) && uData.lastRewardedWeeklyContestDate !== contestDateStr) {
+                        await updateDoc(winnerRef, {
+                          totalPoints: increment(100),
+                          rewardedWeeklyContestDates: arrayUnion(contestDateStr),
+                          lastRewardedWeeklyContestDate: contestDateStr
+                        });
 
-              // 2. If current user is one of the winners, immediately reflect +100 in state
-              if (user?.uid && finalWinners.some(w => (w.userId || w.id || w.studentId) === user.uid)) {
-                setTotalPoints(prev => prev + 100);
+                        // If current logged-in user is this winner, reflect in state and localStorage once
+                        if (user?.uid === wUid) {
+                          const localRewardKey = 'thursday_contest_reward_claimed_' + user.uid + '_' + contestDateStr;
+                          if (!localStorage.getItem(localRewardKey)) {
+                            localStorage.setItem(localRewardKey, 'true');
+                            setTotalPoints(prev => prev + 100);
+                          }
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    console.warn("Could not check/award winner 100 bonus points:", e);
+                  }
+                }
               }
 
               const winnerNamesStr = finalWinners.map(w => w.name).join(' و ');
@@ -2539,8 +2563,9 @@ export default function App() {
                 totalAnswered: finalWinners[0].totalAnswered || 50,
                 rewardPoints: 100,
                 rewardAwarded: true,
+                rewardedUserIds: finalWinners.map(w => w.userId || w.id),
                 isAnnounced: true,
-                contestDate: info.lastCompletedThursdayDate,
+                contestDate: contestDateStr,
                 announcedAt: new Date().toISOString(),
                 winners: finalWinners.map(w => ({
                   userId: w.userId || w.id,
@@ -11058,19 +11083,47 @@ export default function App() {
             correctAnswers={currentThursdayWinner?.correctAnswers}
             totalAnswered={currentThursdayWinner?.totalAnswered}
             isTie={Boolean(currentThursdayWinner?.isTie)}
-            onClose={() => setShowThursdayWinnerModal(false)}
+            onClose={() => {
+              if (user?.uid && currentThursdayWinner?.contestDate) {
+                localStorage.setItem('thursday_winner_modal_seen_' + user.uid + '_' + currentThursdayWinner.contestDate, 'true');
+              }
+              setShowThursdayWinnerModal(false);
+            }}
             onClaimReward={async () => {
-              if (!currentThursdayWinner?.rewardAwarded && user?.uid) {
-                setTotalPoints(prev => prev + 100);
-                try {
-                  await updateDoc(doc(db, 'users', user.uid), {
-                    totalPoints: increment(100)
-                  });
-                } catch (e) {
-                  console.warn('Could not update points on claim:', e);
+              const contestDate = currentThursdayWinner?.contestDate || '';
+              if (user?.uid && contestDate) {
+                localStorage.setItem('thursday_winner_modal_seen_' + user.uid + '_' + contestDate, 'true');
+                const localRewardKey = 'thursday_contest_reward_claimed_' + user.uid + '_' + contestDate;
+                
+                // Strictly guard so 100 points can ONLY be given ONCE!
+                if (!localStorage.getItem(localRewardKey)) {
+                  localStorage.setItem(localRewardKey, 'true');
+                  try {
+                    const userRef = doc(db, 'users', user.uid);
+                    const userSnap = await getDoc(userRef);
+                    if (userSnap.exists()) {
+                      const uData = userSnap.data();
+                      const rewardedDates: string[] = Array.isArray(uData.rewardedWeeklyContestDates) ? uData.rewardedWeeklyContestDates : [];
+                      if (!rewardedDates.includes(contestDate) && uData.lastRewardedWeeklyContestDate !== contestDate) {
+                        setTotalPoints(prev => prev + 100);
+                        await updateDoc(userRef, {
+                          totalPoints: increment(100),
+                          rewardedWeeklyContestDates: arrayUnion(contestDate),
+                          lastRewardedWeeklyContestDate: contestDate
+                        });
+                        showNotification('🎉 ألف مبروك! تم إيداع 100 نقطة ذهبية في حسابك لبطل مسابقة الخميس! 💎', 'success');
+                      } else {
+                        showNotification('✨ تم استلام الـ 100 نقطة في حسابك مسبقاً! استمر في التفوق 👑', 'info');
+                      }
+                    }
+                  } catch (e) {
+                    console.warn('Could not update points on claim:', e);
+                  }
+                } else {
+                  showNotification('✨ تم استلام مكافأة بطل الأسبوع (+100 نقطة) مسبقاً! 👑', 'info');
                 }
               }
-              showNotification('🎉 ألف مبروك! تم إيداع 100 نقطة ذهبية في حسابك تلقائياً لبطل مسابقة الخميس! 💎', 'success');
+              setShowThursdayWinnerModal(false);
             }}
           />
         )}
